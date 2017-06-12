@@ -1,0 +1,27 @@
+{
+  "name": "wsdl-to-ts",
+  "version": "0.1.0",
+  "description": "Build TypeScript typings for SOAP WSDL",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "node test/index.js",
+    "build": "tsc -p tsconfig.json && npm test"
+  },
+  "bin": {
+    "wsdl-to-ts": "lib/index.js"
+  },
+  "author": "TimLuq",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/minimist": "^1.2.0",
+    "@types/mkdirp": "^0.3.29",
+    "@types/node": "*",
+    "@types/soap": "*",
+    "typescript": "^2.2.0"
+  },
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "mkdirp": "^0.5.1",
+    "soap": "^0.19.1"
+  }
+}
