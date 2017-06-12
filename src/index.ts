@@ -1,21 +1,23 @@
 #!/usr/bin/env node
 
-import { wsdl2ts, mergeTypedWsdl, outputTypedWsdl, ITypedWsdl } from "./wsdl-to-ts";
-import * as mkdirp from "mkdirp";
-import { writeFile, rename } from "fs";
+import { rename, writeFile } from "fs";
 import * as minimist from "minimist";
+import * as mkdirp from "mkdirp";
+import { ITypedWsdl, mergeTypedWsdl, outputTypedWsdl, wsdl2ts } from "./wsdl-to-ts";
 
-interface ConfigObject {
+interface IConfigObject {
     outdir: string;
     files: string[];
+    tslintDisable: null | string[];
+    tslintEnable: null | string[];
 }
 
-const config: ConfigObject = { outdir: "./wsdl", files: [] };
+const config: IConfigObject = { outdir: "./wsdl", files: [], tslintDisable: ["max-line-length"], tslintEnable: [] };
 
 const args = minimist(process.argv.slice(2));
 
 if (args.help) {
-
+    // TODO
 }
 
 if (args.version) {
@@ -23,6 +25,20 @@ if (args.version) {
     console.log("%s %s", "wsdl-to-ts", pack.version);
     process.exit(0);
     throw new Error("Exited");
+}
+
+if (args.hasOwnProperty("tslint")) {
+    if (args.tslint === "true") {
+        config.tslintEnable = null;
+    } else if (args.tslint === "false" || args.tslint === "disable") {
+        config.tslintDisable = null;
+    } else {
+        config.tslintEnable = args.tslint ? args.tslint.split(",") : null;
+    }
+}
+
+if (args.hasOwnProperty("tslint-disable")) {
+    config.tslintDisable = args["tslint-disable"] ? args["tslint-disable"].split(",") : null;
 }
 
 if (args._) {
@@ -59,7 +75,21 @@ Promise.all(config.files.map(wsdl2ts)).
             return mkdirpp(dir).then(() => {
                 return new Promise((resolve, reject) => {
                     const tsfile = file + ".ts.tmp";
-                    writeFile(tsfile, x.data.join("\n\n"), (err) => {
+                    const fileData: string[] = [];
+                    if (config.tslintEnable === null) {
+                        fileData.push("/* tslint:enable */");
+                    }
+                    if (config.tslintDisable === null) {
+                        fileData.push("/* tslint:disable */");
+                    } else if (config.tslintDisable.length !== 0) {
+                        fileData.push("/* tslint:disable:" + config.tslintDisable.join(" ") + " */");
+                    }
+                    if (config.tslintEnable && config.tslintEnable.length !== 0) {
+                        fileData.push("/* tslint:enable:" + config.tslintEnable.join(" ") + " */");
+                    }
+                    fileData.push(x.data.join("\n\n"));
+                    fileData.push("");
+                    writeFile(tsfile, fileData.join("\n"), (err) => {
                         if (err) {
                             reject(err);
                         } else {

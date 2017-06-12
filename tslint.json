@@ -1,0 +1,16 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:latest"
+    ],
+    "jsRules": {},
+    "rules": {
+	"no-namespace":false,
+	"no-console":false,
+	"max-classes-per-file":false,
+	"no-bitwise": false,
+	"variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
+	"max-line-length": false
+    },
+    "rulesDirectory": []
+}
