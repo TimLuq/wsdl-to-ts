@@ -15,9 +15,33 @@ export interface ITypedWsdl {
     files: ITwoDown<string>;
     methods: ITwoDown<{ [k: string]: string }>;
     types: ITwoDown<{ [k: string]: string }>;
+    namespaces: ITwoDown<{ [k: string]: { [k: string]: string } }>;
 }
 
-function wsdlTypeToInterfaceObj(obj: IInterfaceObject): { [k: string]: any } {
+export class TypeCollector {
+
+    public readonly registered: { [k: string]: string };
+    public readonly collected: { [k: string]: string };
+
+    constructor(public readonly ns: string) {
+        this.registered = {};
+        this.collected = {};
+    }
+
+    public registerCollected() {
+        for (const k of Object.keys(this.collected)) {
+            if (this.collected[k]) {
+                this.registered[k] = this.collected[k];
+            } else {
+                delete this.registered[k];
+            }
+            delete this.collected[k];
+        }
+        return this;
+    }
+}
+
+function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeCollector): { [k: string]: any } {
     const r: { [k: string]: any } = {};
     for (const k of Object.keys(obj)) {
         if (k === "targetNSAlias" || k === "targetNamespace") {
@@ -47,10 +71,22 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject): { [k: string]: any } {
             }
             r[k2] = "/** " + typeFullName + "(" + typeData + ") */ " + typeClass + ";";
         } else {
-            const to = wsdlTypeToInterfaceObj(v as IInterfaceObject);
+            const to = wsdlTypeToInterfaceObj(v as IInterfaceObject, typeCollector);
             let tr: { [k: string]: any } | string;
             if (isArray) {
-                let s = wsdlTypeToInterfaceString(to).replace(/\n/g, "\n    ");
+                let s = wsdlTypeToInterfaceString(to);
+                if (typeCollector && typeCollector.ns) {
+                    if (typeCollector.registered.hasOwnProperty(k2) && typeCollector.registered[k2] === s) {
+                        s = typeCollector.ns + ".I" + k2 + ";";
+                    } else if (typeCollector.collected.hasOwnProperty(k2)) {
+                        if (typeCollector.collected[k2] !== s) {
+                            typeCollector.collected[k2] = null;
+                        }
+                    } else {
+                        typeCollector.collected[k2] = s;
+                    }
+                }
+                s = s.replace(/\n/g, "\n    ");
 
                 if (s.startsWith("/**")) {
                     const i = s.indexOf("*/") + 2;
@@ -62,6 +98,20 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject): { [k: string]: any } {
                 tr = s;
             } else {
                 tr = to;
+                if (typeCollector && typeCollector.ns) {
+                    const ss = wsdlTypeToInterfaceString(to);
+                    if (typeCollector.registered.hasOwnProperty(k2)) {
+                        if (typeCollector.registered[k2] === ss) {
+                            tr = typeCollector.ns + ".I" + k2;
+                        }
+                    } else if (typeCollector.collected.hasOwnProperty(k2)) {
+                        if (typeCollector.collected[k2] !== ss) {
+                            typeCollector.collected[k2] = null;
+                        }
+                    } else {
+                        typeCollector.collected[k2] = ss;
+                    }
+                }
             }
             r[k2] = tr;
         }
@@ -93,8 +143,8 @@ function wsdlTypeToInterfaceString(d: { [k: string]: any }): string {
     return "{\n    " + r.join("\n    ") + "\n}";
 }
 
-function wsdlTypeToInterface(obj: { [k: string]: any }): string {
-    return wsdlTypeToInterfaceString(wsdlTypeToInterfaceObj(obj));
+function wsdlTypeToInterface(obj: { [k: string]: any }, typeCollector?: TypeCollector): string {
+    return wsdlTypeToInterfaceString(wsdlTypeToInterfaceObj(obj, typeCollector));
 }
 
 export function wsdl2ts(wsdlUri: string): Promise<ITypedWsdl> {
@@ -111,29 +161,67 @@ export function wsdl2ts(wsdlUri: string): Promise<ITypedWsdl> {
             client,
             files: {},
             methods: {},
+            namespaces: {},
             types: {},
         };
         const d = client.describe();
 
         for (const service of Object.keys(d)) {
             for (const port of Object.keys(d[service])) {
+                const collector = new TypeCollector(port + "Types");
                 // console.log("-- %s.%s", service, port);
+
                 if (!r.types[service]) {
                     r.types[service] = {};
                     r.methods[service] = {};
                     r.files[service] = {};
+                    r.namespaces[service] = {};
                 }
                 if (!r.types[service][port]) {
                     r.types[service][port] = {};
                     r.methods[service][port] = {};
                     r.files[service][port] = service + "/" + port;
+                    r.namespaces[service][port] = {};
                 }
+
+                for (let maxi = 0; maxi < 32; maxi++) {
+                    for (const method of Object.keys(d[service][port])) {
+                        // console.log("---- %s", method);
+
+                        wsdlTypeToInterface(d[service][port][method].input || {}, collector);
+                        wsdlTypeToInterface(d[service][port][method].output || {}, collector);
+                    }
+
+                    const reg = cloneObj(collector.registered);
+                    collector.registerCollected();
+                    const regKeys0: string[] = Object.keys(collector.registered);
+                    const regKeys1: string[] = Object.keys(reg);
+                    if (regKeys0.length === regKeys1.length) {
+                        for (const rk of regKeys0) {
+                            if (collector.registered[rk] === reg[rk]) {
+                                break;
+                            }
+                        }
+                    }
+                    if (maxi === 31) {
+                        console.warn("wsdl-to-ts: Aborted nested interface changes");
+                    }
+                }
+
+                const collectedKeys: string[] = Object.keys(collector.registered);
+                if (collectedKeys.length) {
+                    const ns: { [k: string]: string } = r.namespaces[service][port][collector.ns] = {};
+                    for (const k of collectedKeys) {
+                        ns[k] = "export interface I" + k + " " + collector.registered[k];
+                    }
+                }
+
                 for (const method of Object.keys(d[service][port])) {
-                    // console.log("---- %s", method);
+
                     r.types[service][port]["I" + method + "Input"] =
-                        wsdlTypeToInterface(d[service][port][method].input || {});
+                        wsdlTypeToInterface(d[service][port][method].input || {}, collector);
                     r.types[service][port]["I" + method + "Output"] =
-                        wsdlTypeToInterface(d[service][port][method].output || {});
+                        wsdlTypeToInterface(d[service][port][method].output || {}, collector);
                     r.methods[service][port][method] =
                         "(input: I" + method + "Input, " +
                         "cb: (err: any | null," +
@@ -171,6 +259,7 @@ export function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl {
         client: null,
         files: cloneObj(a.files),
         methods: cloneObj(a.methods),
+        namespaces: cloneObj(a.namespaces),
         types: cloneObj(a.types),
     };
     for (const b of bs) {
@@ -179,12 +268,14 @@ export function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl {
                 x.files[service] = cloneObj(b.files[service]);
                 x.methods[service] = cloneObj(b.methods[service]);
                 x.types[service] = cloneObj(b.types[service]);
+                x.namespaces[service] = cloneObj(b.namespaces[service]);
             } else {
                 for (const port of Object.keys(b.files[service])) {
                     if (!x.files[service].hasOwnProperty(port)) {
                         x.files[service][port] = b.files[service][port];
                         x.methods[service][port] = cloneObj(b.methods[service][port]);
                         x.types[service][port] = cloneObj(b.types[service][port]);
+                        x.namespaces[service][port] = cloneObj(b.namespaces[service][port]);
                     } else {
                         x.files[service][port] = b.files[service][port];
                         for (const method of Object.keys(b.methods[service][port])) {
@@ -192,6 +283,15 @@ export function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl {
                         }
                         for (const type of Object.keys(b.types[service][port])) {
                             x.types[service][port][type] = b.types[service][port][type];
+                        }
+                        for (const ns of Object.keys(b.namespaces[service][port])) {
+                            if (!x.namespaces[service][port].hasOwnProperty(ns)) {
+                                x.namespaces[service][port][ns] = cloneObj(b.namespaces[service][port][ns]);
+                            } else {
+                                for (const nsi of Object.keys(b.namespaces[service][port][ns])) {
+                                    x.namespaces[service][port][ns][nsi] = b.namespaces[service][port][ns][nsi];
+                                }
+                            }
                         }
                     }
                 }
@@ -218,6 +318,17 @@ export function outputTypedWsdl(a: ITypedWsdl): Array<{ file: string, data: stri
                 }
                 if (ms.length) {
                     d.data.push("export interface I" + port + "Soap {\n    " + ms.join("\n    ") + "\n}");
+                }
+            }
+            if (a.namespaces[service] && a.namespaces[service][port]) {
+                for (const ns of Object.keys(a.namespaces[service][port])) {
+                    const ms: string[] = [];
+                    for (const nsi of Object.keys(a.namespaces[service][port][ns])) {
+                        ms.push(a.namespaces[service][port][ns][nsi].replace(/\n/g, "\n    "));
+                    }
+                    if (ms.length) {
+                        d.data.push("export namespace " + ns + " {\n    " + ms.join("\n    ") + "\n}");
+                    }
                 }
             }
             r.push(d);

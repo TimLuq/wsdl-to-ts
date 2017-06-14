@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* tslint:disable:no-var-requires */
+
 import { rename, writeFile } from "fs";
 import * as minimist from "minimist";
 import * as mkdirp from "mkdirp";
