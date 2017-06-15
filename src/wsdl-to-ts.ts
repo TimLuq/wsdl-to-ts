@@ -1,4 +1,5 @@
 import * as soap from "soap";
+// import { diffLines } from "diff";
 
 export const nsEnums: { [k: string]: boolean } = {};
 
@@ -67,7 +68,11 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeColle
                 }
             }
             if (isArray) {
-                typeClass = "Array<" + typeClass + ">";
+                if (/^[A-Za-z0-9\.]+$/.test(typeClass)) {
+                    typeClass += "[]";
+                } else {
+                    typeClass = "Array<" + typeClass + ">";
+                }
             }
             r[k2] = "/** " + typeFullName + "(" + typeData + ") */ " + typeClass + ";";
         } else {
@@ -92,7 +97,12 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeColle
                     const i = s.indexOf("*/") + 2;
                     s = s.substring(0, i) + " Array<" + s.substring(i).trim().replace(/;$/, "") + ">;";
                 } else {
-                    s = "Array<" + s.trim().replace(/;$/, "") + ">;";
+                    s = s.trim().replace(/;$/, "");
+                    if (/^[A-Za-z0-9\.]+$/.test(s)) {
+                        s += "[];";
+                    } else {
+                        s = "Array<" + s + ">;";
+                    }
                 }
 
                 tr = s;
@@ -100,10 +110,8 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeColle
                 tr = to;
                 if (typeCollector && typeCollector.ns) {
                     const ss = wsdlTypeToInterfaceString(to);
-                    if (typeCollector.registered.hasOwnProperty(k2)) {
-                        if (typeCollector.registered[k2] === ss) {
-                            tr = typeCollector.ns + ".I" + k2;
-                        }
+                    if (typeCollector.registered.hasOwnProperty(k2) && typeCollector.registered[k2] === ss) {
+                        tr = typeCollector.ns + ".I" + k2 + ";";
                     } else if (typeCollector.collected.hasOwnProperty(k2)) {
                         if (typeCollector.collected[k2] !== ss) {
                             typeCollector.collected[k2] = null;
@@ -197,10 +205,15 @@ export function wsdl2ts(wsdlUri: string): Promise<ITypedWsdl> {
                     const regKeys0: string[] = Object.keys(collector.registered);
                     const regKeys1: string[] = Object.keys(reg);
                     if (regKeys0.length === regKeys1.length) {
+                        let noChange = true;
                         for (const rk of regKeys0) {
-                            if (collector.registered[rk] === reg[rk]) {
+                            if (collector.registered[rk] !== reg[rk]) {
+                                noChange = false;
                                 break;
                             }
+                        }
+                        if (noChange) {
+                            break;
                         }
                     }
                     if (maxi === 31) {
