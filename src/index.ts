@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/* tslint:disable:no-var-requires */
-
 import { rename, writeFile } from "fs";
 import * as minimist from "minimist";
 import * as mkdirp from "mkdirp";
@@ -23,6 +21,7 @@ if (args.help) {
 }
 
 if (args.version) {
+    /* tslint:disable:no-var-requires */
     const pack = require("../package.json");
     console.log("%s %s", "wsdl-to-ts", pack.version);
     process.exit(0);

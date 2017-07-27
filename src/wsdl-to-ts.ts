@@ -254,15 +254,8 @@ function cloneObj<T extends { [k: string]: any }>(a: T): T {
     const b: T = {} as any;
     for (const k of Object.keys(a)) {
         const t = typeof a[k];
-        if (t === "object") {
-            if (Array.isArray(a[k])) {
-                b[k] = a[k].slice();
-            } else {
-                b[k] = cloneObj(a[k]);
-            }
-        } else {
-            b[k] = a[k];
-        }
+        b[k] = t === "object" ?
+            Array.isArray(a[k]) ? a[k].slice() : cloneObj(a[k]) : a[k];
     }
     return b;
 }
