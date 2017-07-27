@@ -42,6 +42,10 @@ if (args.hasOwnProperty("tslint-disable")) {
     config.tslintDisable = args["tslint-disable"] ? args["tslint-disable"].split(",") : null;
 }
 
+if (args.outdir || args.outDir) {
+    config.outdir = args.outdir || args.outDir;
+}
+
 if (args._) {
     config.files.push.apply(config.files, args._);
 }
