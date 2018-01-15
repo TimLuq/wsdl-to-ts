@@ -10,7 +10,10 @@
   "bin": {
     "wsdl-to-ts": "lib/index.js"
   },
-  "keywords": ["soap", "typescript"],
+  "keywords": [
+    "soap",
+    "typescript"
+  ],
   "author": {
     "name": "TimLuq",
     "url": "https://github.com/TimLuq"
@@ -32,7 +35,7 @@
     "url": "https://github.com/TimLuq/wsdl-to-ts/issues"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/TimLuq/wsdl-to-ts.git"
+    "type": "git",
+    "url": "https://github.com/TimLuq/wsdl-to-ts.git"
   }
 }

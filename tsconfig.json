@@ -12,7 +12,8 @@
         "rootDir": "src",
         "outDir": "lib",
         "lib": [
-            "es6"
+            "es6",
+            "dom"
         ]
     },
     "exclude": [
