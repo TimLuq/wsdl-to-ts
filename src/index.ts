@@ -3,7 +3,7 @@
 import { rename, writeFile } from "fs";
 import * as minimist from "minimist";
 import * as mkdirp from "mkdirp";
-import { ITypedWsdl, mergeTypedWsdl, outputTypedWsdl, wsdl2ts } from "./wsdl-to-ts";
+import { IInterfaceOptions, ITypedWsdl, mergeTypedWsdl, outputTypedWsdl, wsdl2ts } from "./wsdl-to-ts";
 
 interface IConfigObject {
     outdir: string;
@@ -12,6 +12,7 @@ interface IConfigObject {
     tslintEnable: null | string[];
 }
 
+const opts: IInterfaceOptions = {};
 const config: IConfigObject = { outdir: "./wsdl", files: [], tslintDisable: ["max-line-length"], tslintEnable: [] };
 
 const args = minimist(process.argv.slice(2));
@@ -46,6 +47,14 @@ if (args.outdir || args.outDir) {
     config.outdir = args.outdir || args.outDir;
 }
 
+if (args.hasOwnProperty("quote")) {
+    if (args.quote === "false" || args.quote === "disable" || args.quote === "0") {
+        opts.quoteProperties = false;
+    } else if (args.quote === "true" || args.quote === "1" || !args.quote) {
+        opts.quoteProperties = true;
+    }
+}
+
 if (args._) {
     config.files.push.apply(config.files, args._);
 }
@@ -68,7 +77,7 @@ function mkdirpp(dir: string, mode?: number): Promise<string> {
     });
 }
 
-Promise.all(config.files.map(wsdl2ts)).
+Promise.all(config.files.map((a) => wsdl2ts(a, opts))).
     then((xs) => mergeTypedWsdl.apply(undefined, xs)).
     then(outputTypedWsdl).
     then((xs: Array<{ file: string, data: string[] }>) => {

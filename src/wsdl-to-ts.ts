@@ -11,6 +11,10 @@ interface IInterfaceObject {
     [key: string]: string | IInterfaceObject;
 }
 
+export interface IInterfaceOptions {
+    quoteProperties?: boolean;
+}
+
 export interface ITypedWsdl {
     client: soap.Client | null;
     files: ITwoDown<string>;
@@ -128,10 +132,14 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeColle
     return r;
 }
 
-function wsdlTypeToInterfaceString(d: { [k: string]: any }): string {
+function wsdlTypeToInterfaceString(d: { [k: string]: any }, opts: IInterfaceOptions = {}): string {
     const r: string[] = [];
     for (const k of Object.keys(d)) {
         const t = typeof d[k];
+        let p: string = k;
+        if (opts.quoteProperties || (opts.quoteProperties === undefined && !/^[A-Za-z][A-Za-z0-9_-]*$/.test(k))) {
+            p = JSON.stringify(k);
+        }
         if (t === "string") {
             const v = d[k];
             if (v.startsWith("/**")) {
@@ -142,15 +150,15 @@ function wsdlTypeToInterfaceString(d: { [k: string]: any }): string {
                 const rawtype = v.substring(i).trim();
                 const colon = rawtype.indexOf(":");
                 if (colon !== -1) {
-                    r.push(k + ": " + rawtype.substring(colon + 1));
+                    r.push(p + ": " + rawtype.substring(colon + 1));
                 } else {
-                    r.push(k + ": " + rawtype);
+                    r.push(p + ": " + rawtype);
                 }
             } else {
-                r.push(k + ": " + v);
+                r.push(p + ": " + v);
             }
         } else {
-            r.push(k + ": " + wsdlTypeToInterfaceString(d[k]).replace(/\n/g, "\n    ") + ";");
+            r.push(p + ": " + wsdlTypeToInterfaceString(d[k], opts).replace(/\n/g, "\n    ") + ";");
         }
     }
     if (r.length === 0) {
@@ -159,11 +167,11 @@ function wsdlTypeToInterfaceString(d: { [k: string]: any }): string {
     return "{\n    " + r.join("\n    ") + "\n}";
 }
 
-function wsdlTypeToInterface(obj: { [k: string]: any }, typeCollector?: TypeCollector): string {
-    return wsdlTypeToInterfaceString(wsdlTypeToInterfaceObj(obj, typeCollector));
+function wsdlTypeToInterface(obj: { [k: string]: any }, typeCollector?: TypeCollector, opts?: IInterfaceOptions): string {
+    return wsdlTypeToInterfaceString(wsdlTypeToInterfaceObj(obj, typeCollector), opts);
 }
 
-export function wsdl2ts(wsdlUri: string): Promise<ITypedWsdl> {
+export function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITypedWsdl> {
     return new Promise<soap.Client>((resolve, reject) => {
         soap.createClient(wsdlUri, {}, (err, client) => {
             if (err) {
@@ -204,8 +212,8 @@ export function wsdl2ts(wsdlUri: string): Promise<ITypedWsdl> {
                     for (const method of Object.keys(d[service][port])) {
                         // console.log("---- %s", method);
 
-                        wsdlTypeToInterface(d[service][port][method].input || {}, collector);
-                        wsdlTypeToInterface(d[service][port][method].output || {}, collector);
+                        wsdlTypeToInterface(d[service][port][method].input || {}, collector, opts);
+                        wsdlTypeToInterface(d[service][port][method].output || {}, collector, opts);
                     }
 
                     const reg = cloneObj(collector.registered);
@@ -240,9 +248,9 @@ export function wsdl2ts(wsdlUri: string): Promise<ITypedWsdl> {
                 for (const method of Object.keys(d[service][port])) {
 
                     r.types[service][port]["I" + method + "Input"] =
-                        wsdlTypeToInterface(d[service][port][method].input || {}, collector);
+                        wsdlTypeToInterface(d[service][port][method].input || {}, collector, opts);
                     r.types[service][port]["I" + method + "Output"] =
-                        wsdlTypeToInterface(d[service][port][method].output || {}, collector);
+                        wsdlTypeToInterface(d[service][port][method].output || {}, collector, opts);
                     r.methods[service][port][method] =
                         "(input: I" + method + "Input, " +
                         "cb: (err: any | null," +
