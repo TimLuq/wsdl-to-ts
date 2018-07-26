@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const fs_1 = require("fs");
-const minimist = require("minimist");
-const mkdirp = require("mkdirp");
-const wsdl_to_ts_1 = require("./wsdl-to-ts");
+import { rename, writeFile } from "fs";
+import * as minimist from "minimist";
+import * as mkdirp from "mkdirp";
+import { mergeTypedWsdl, outputTypedWsdl, wsdl2ts } from "./wsdl-to-ts";
 const opts = {};
 const config = { outdir: "./wsdl", files: [], tslintDisable: ["max-line-length"], tslintEnable: [] };
 const args = minimist(process.argv.slice(2));
@@ -63,9 +62,9 @@ function mkdirpp(dir, mode) {
         });
     });
 }
-Promise.all(config.files.map((a) => wsdl_to_ts_1.wsdl2ts(a, opts))).
-    then((xs) => wsdl_to_ts_1.mergeTypedWsdl.apply(undefined, xs)).
-    then(wsdl_to_ts_1.outputTypedWsdl).
+Promise.all(config.files.map((a) => wsdl2ts(a, opts))).
+    then((xs) => mergeTypedWsdl.apply(undefined, xs)).
+    then(outputTypedWsdl).
     then((xs) => {
     return Promise.all(xs.map((x) => {
         console.log("-- %s --", x.file);
@@ -90,7 +89,7 @@ Promise.all(config.files.map((a) => wsdl_to_ts_1.wsdl2ts(a, opts))).
                 }
                 fileData.push(x.data.join("\n\n"));
                 fileData.push("");
-                fs_1.writeFile(tsfile, fileData.join("\n"), (err) => {
+                writeFile(tsfile, fileData.join("\n"), (err) => {
                     if (err) {
                         reject(err);
                     }
@@ -105,7 +104,7 @@ Promise.all(config.files.map((a) => wsdl_to_ts_1.wsdl2ts(a, opts))).
     then((files) => Promise.all(files.map((file) => {
     return new Promise((resolve, reject) => {
         const realFile = file.replace(/\.[^.]+$/, "");
-        fs_1.rename(file, realFile, (err) => {
+        rename(file, realFile, (err) => {
             if (err) {
                 reject(err);
             }
