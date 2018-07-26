@@ -137,16 +137,15 @@ function wsdlTypeToInterfaceString(d: { [k: string]: any }): string {
             if (v.startsWith("/**")) {
                 const i = v.indexOf("*/") + 2;
                 r.push(v.substring(0, i));
-                
+
                 // for types like "xsd:string" only the "string" part is used
                 const rawtype = v.substring(i).trim();
-                if(rawtype.indexOf(':') !== -1){
-                    const realtype = rawtype.split(':');
-                    r.push(k + ": " + realtype[realtype.length-1]);
-                }else{
+                const colon = rawtype.indexOf(":");
+                if (colon !== -1) {
+                    r.push(k + ": " + rawtype.substring(colon + 1));
+                } else {
                     r.push(k + ": " + rawtype);
                 }
-                
             } else {
                 r.push(k + ": " + v);
             }
