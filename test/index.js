@@ -1,6 +1,6 @@
 const { wsdl2ts, mergeTypedWsdl, outputTypedWsdl } = require("../lib/wsdl-to-ts");
 
-/** @type {Array.<{0: string; 1: Promise}>} */
+/** @type {Array.<{0: string; 1: Promise.<string>}>} */
 const testResults = [];
 
 // test simple case; disregard result
@@ -15,7 +15,8 @@ testResults.push(["simple", Promise.all([
         wsdl2ts(rcvdWsdl),
     ]).
     then((xs) => mergeTypedWsdl.apply(undefined, xs)).
-    then(outputTypedWsdl)
+    then(outputTypedWsdl).
+    then(() => "OK")
 ]);
 
 // test cases that need key excaping; write to files
@@ -177,7 +178,8 @@ testResults.push(["complex", Promise.all([
             return mkdirpP(f.replace(/\/[^/]+$/, "")).
                 then(() => writefileP(f, x.data.join("\n\n")));
         })))
-    )
+    ).
+    then(() => "OK")
 ]);
 
 // test values in package.json
@@ -191,6 +193,7 @@ testResults.push(["valid main", !package.main ? Promise.reject("No main field in
         if (!/\.js$/.test(package.main)) {
             throw "Expected main file to have file extension `.js` but found: " + JSON.stringify(package.main);
         }
+        return "OK";
     })
 ]);
 
@@ -207,6 +210,7 @@ testResults.push(["valid bin", !package.bin ? Promise.reject("No bin field in pa
         if (f3 !== "#!/") {
             throw "Expected a hashbang sequence as the first tokens but found: " + JSON.stringify(f3) + " in " + package.bin["wsdl-to-ts"];
         }
+        return "OK";
     })
 ]);
 
@@ -221,6 +225,7 @@ testResults.push(["valid module", !package.module ? Promise.reject("No module fi
         if (!/\.m?js$/.test(package.module)) {
             throw "Expected module file to have file extension `.mjs` or `.js` but found: " + JSON.stringify(package.module);
         }
+        return "OK";
     })
 ]);
 
@@ -235,14 +240,33 @@ testResults.push(["valid types", !package.types ? Promise.reject("No types field
         if (!/\.d\.ts$/.test(package.types)) {
             throw "Expected types file to have file extension `.d.ts` but found: " + JSON.stringify(package.types);
         }
+        return "OK";
     })
 ]);
 
+// Run the imossible test
+
+const recursiveWsdl = "https://srv6.demo-attendant.advam.com/makeBooking/webservice/booking.wsdl";
+testResults.push(["recursive elements", Promise.all([
+        wsdl2ts(recursiveWsdl),
+    ]).
+    then((xs) => mergeTypedWsdl.apply(undefined, xs)).
+    then(outputTypedWsdl).
+    then(() => "OK", (e) => {
+        if (e && e instanceof RangeError) {
+            return "Expected error\n  " + (e.stack || e);
+        }
+        throw e;
+    })
+]);
+
+// handle results
+
 testResults.forEach((test) => {
-    test[1].then(() => {
-        console.log("Test `%s`: OK", test[0]);
+    test[1].then((r) => {
+        console.log("Test `%s`:", test[0], r);
     }, (e) => {
-        console.error("Test `%s`: FAIL\n", test[0], e);
+        console.error("Test `%s`: FAIL\n ", test[0], e);
         process.exitCode = 1;
     });
 });
