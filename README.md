@@ -20,30 +20,33 @@
 A CLI tool and library for nodejs to generate TypeScript typings from a WSDL service.
 
 ## Installation
-Installation is done through [npm](https://npmjs.com).
+Installation is done either through [npm](https://npmjs.com) or [yarn](https://yarnpkg.com).
 
 ### Installation for Command Line usage
 
-To install CLI tool globally run the following command as root or sudo:
+To install CLI tool globally run one of the following command as root or sudo:
 ```sh
 $ npm install -g wsdl-to-ts
+$ yarn global add wsdl-to-ts
 ```
 
-To install CLI tool for the current user this command may be used (which places working directory at users `$HOME`):
+To install CLI tool for the current user one of these commands may be used (which places working directory at users `$HOME`):
 ```sh
 $ cd && npm install wsdl-to-ts
+$ cd && yarn add wsdl-to-ts
 ```
 
 ### Installation for Library usage
 
-To install a library as a dependency to your current npm project you enter your project directory as the current directory and run the following commands:
+To install a library as a dependency to your current npm project you enter your project directory as the current directory and run one of the following commands:
 ```sh
 $ npm install --save wsdl-to-ts
+$ yarn add wsdl-to-ts
 ```
 
 ## Usage
 
-If any more documentation is needed for library usage, other than the IDE completions; feel free to open an [issue](https://github.com/TimLuq/wsdl-to-ts/issues).
+If any more documentation is needed for library usage, other than the IDE completions; feel free to open an [issue](https://github.com/TimLuq/wsdl-to-ts/issues). Also take a look at the [type definitions](https://github.com/TimLuq/wsdl-to-ts/blob/master/esm/wsdl-to-ts.d.ts)
 
 ### Usage for Command Line
 

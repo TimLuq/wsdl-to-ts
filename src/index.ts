@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+"use strict";
 
 import { rename, writeFile } from "fs";
 import * as minimist from "minimist";
@@ -85,7 +86,7 @@ Promise.all(config.files.map((a) => wsdl2ts(a, opts))).
             console.log("-- %s --", x.file);
             console.log("%s", x.data.join("\n\n"));
             const file = config.outdir + "/" + x.file;
-            const dir = file.replace(/\/[^\/]+$/, "");
+            const dir = file.replace(/\/[^/]+$/, "");
             return mkdirpp(dir).then(() => {
                 return new Promise((resolve, reject) => {
                     const tsfile = file + ".ts.tmp";
@@ -116,7 +117,7 @@ Promise.all(config.files.map((a) => wsdl2ts(a, opts))).
     }).
     then((files: string[]) => Promise.all(files.map((file) => {
         return new Promise((resolve, reject) => {
-            const realFile = file.replace(/\.[^\.]+$/, "");
+            const realFile = file.replace(/\.[^.]+$/, "");
             rename(file, realFile, (err) => {
                 if (err) {
                     reject(err);

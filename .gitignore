@@ -60,3 +60,4 @@ typings/
 # other
 *~
 /package-lock.json
+/test/results

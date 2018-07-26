@@ -1,16 +1,16 @@
 {
-    "defaultSeverity": "error",
+    "defaultSeverity": "warn",
     "extends": [
         "tslint:recommended"
     ],
     "jsRules": {},
     "rules": {
-	"no-namespace":false,
-	"no-console":false,
-	"max-classes-per-file":false,
-	"no-bitwise": false,
-	"variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
-	"max-line-length": false
+        "no-namespace":false,
+        "no-console":false,
+        "max-classes-per-file":false,
+        "no-bitwise": false,
+        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
+        "max-line-length": false
     },
     "rulesDirectory": []
 }
