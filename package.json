@@ -7,14 +7,17 @@
   "types": "esm/wsdl-to-ts.d.ts",
   "scripts": {
     "test": "node test/index.js",
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.json -d --outDir esm --module es2015 --target es2016 && npm test"
+    "build": "npx tsc -p tsconfig.json && npx tsc -p tsconfig.json -d --outDir esm --module es2015 --target es2016",
+    "ci": "npm run build && npm test"
   },
   "bin": {
     "wsdl-to-ts": "lib/index.js"
   },
   "keywords": [
     "soap",
-    "typescript"
+    "typescript",
+    "wsdl",
+    "ts"
   ],
   "author": {
     "name": "TimLuq",
@@ -24,15 +27,15 @@
   "devDependencies": {
     "@types/bluebird": "^3.5.23",
     "@types/minimist": "^1.2.0",
-    "@types/mkdirp": "^0.3.29",
-    "@types/node": "*",
+    "@types/mkdirp": ">=0.5.1 <1.0.0",
+    "@types/node": ">=6.0.0 <12.0.0",
     "tslint": "^5.11.0",
     "typescript": "^2.2.0"
   },
   "dependencies": {
     "minimist": "^1.2.0",
-    "mkdirp": "^0.5.1",
-    "soap": "^0.21.0"
+    "mkdirp": ">=0.5.1 <1.0.0",
+    "soap": ">=0.21.0 <1.0.0"
   },
   "bugs": {
     "url": "https://github.com/TimLuq/wsdl-to-ts/issues"
