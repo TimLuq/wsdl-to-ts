@@ -1,4 +1,22 @@
 # wsdl-to-ts
+
+<a href="https://travis-ci.org/TimLuq/wsdl-to-ts">
+    <img src="https://api.travis-ci.org/TimLuq/wsdl-to-ts.svg?branch=master"
+         alt="build status" />
+</a>
+<a href="https://www.npmjs.com/package/wsdl-to-ts">
+    <img src="https://img.shields.io/npm/v/wsdl-to-ts.svg"
+         alt="npm version" />
+</a>
+<a href="https://github.com/TimLuq/wsdl-to-ts/blob/master/LICENSE.md">
+    <img src="https://img.shields.io/npm/l/wsdl-to-ts.svg"
+         alt="license" />
+</a>
+<a href="https://david-dm.org/TimLuq/wsdl-to-ts">
+    <img src="https://david-dm.org/TimLuq/wsdl-to-ts/status.svg"
+         alt="dependency status" />
+</a>
+
 A CLI tool and library for nodejs to generate TypeScript typings from a WSDL service.
 
 ## Installation
