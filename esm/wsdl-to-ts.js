@@ -228,7 +228,7 @@ export function wsdl2ts(wsdlUri, opts) {
                             "cb: (err: any | null," +
                             " result: I" + method + "Output," +
                             " raw: string, " +
-                            " soapHeader: {[k: string]: any;}) => any, " +
+                            " soapHeader: {[k: string]: any; }) => any, " +
                             "options?: any, " +
                             "extraHeaders?: any" +
                             ") => void";

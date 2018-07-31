@@ -14,7 +14,7 @@ interface IConfigObject {
 }
 
 const opts: IInterfaceOptions = {};
-const config: IConfigObject = { outdir: "./wsdl", files: [], tslintDisable: ["max-line-length"], tslintEnable: [] };
+const config: IConfigObject = { outdir: "./wsdl", files: [], tslintDisable: ["max-line-length", "no-empty-interface"], tslintEnable: [] };
 
 const args = minimist(process.argv.slice(2));
 
