@@ -256,7 +256,9 @@ export function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITyp
                         "cb: (err: any | null," +
                         " result: I" + method + "Output," +
                         " raw: string, " +
-                        " soapHeader: {[k: string]: any}) => any" +
+                        " soapHeader: {[k: string]: any;}) => any, " +
+                        "options?: any, " +
+                        "extraHeaders?: any" +
                         ") => void";
                 }
             }
