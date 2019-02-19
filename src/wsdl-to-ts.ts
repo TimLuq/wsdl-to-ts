@@ -21,6 +21,7 @@ export interface ITypedWsdl {
     methods: ITwoDown<{ [k: string]: string }>;
     types: ITwoDown<{ [k: string]: string }>;
     namespaces: ITwoDown<{ [k: string]: { [k: string]: string } }>;
+    soapNamespaces: string[];
 }
 
 export class TypeCollector {
@@ -28,6 +29,8 @@ export class TypeCollector {
     public readonly registered: { [k: string]: string };
     public readonly collected: { [k: string]: string };
 
+
+    public soapNamespaces: string[] = [];
     constructor(public readonly ns: string) {
         this.registered = {};
         this.collected = {};
@@ -47,19 +50,23 @@ export class TypeCollector {
 }
 
 function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeCollector): { [k: string]: any } {
-    const r: { [k: string]: any } = {};
-    for (const k of Object.keys(obj)) {
-        if (k === "targetNSAlias" || k === "targetNamespace") {
+    const output: { [k: string]: any } = {};
+    for (const key of Object.keys(obj)) {
+        if (key === "targetNSAlias" || key === "targetNamespace") {
             continue;
         }
-        const isArray = k.endsWith("[]");
-        const k2 = isArray ? k.substring(0, k.length - 2) : k;
-        const v = obj[k];
+        const isArray = key.endsWith("[]");
+        const k2 = isArray ? key.substring(0, key.length - 2) : key;
+        const v = obj[key];
         const t = typeof v;
         if (t === "string") {
             const vstr = v as string;
             const [typeName, superTypeClass, typeData] =
                 vstr.indexOf("|") === -1 ? [vstr, vstr, undefined] : vstr.split("|");
+
+            if (obj.targetNamespace && typeCollector && typeof obj.targetNamespace === 'string' && typeCollector.soapNamespaces.indexOf(obj.targetNamespace as string) < 0) {
+              typeCollector.soapNamespaces.push(obj.targetNamespace);
+            }
             const typeFullName = obj.targetNamespace ? obj.targetNamespace + "#" + typeName : typeName;
             let typeClass = superTypeClass === "integer" ? "number" : superTypeClass;
             if (nsEnums[typeFullName] || typeData) {
@@ -78,7 +85,7 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeColle
                     typeClass = "Array<" + typeClass + ">";
                 }
             }
-            r[k2] = "/** " + typeFullName + "(" + typeData + ") */ " + typeClass + ";";
+            output[k2] = "/** " + typeFullName + "(" + typeData + ") */ " + typeClass + ";";
         } else {
             const to = wsdlTypeToInterfaceObj(v as IInterfaceObject, typeCollector);
             let tr: { [k: string]: any } | string;
@@ -125,11 +132,11 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeColle
                     }
                 }
             }
-            r[k2] = tr;
+            output[k2] = tr;
         }
     }
     // console.log("wsdlTypeToInterfaceObj:", r);
-    return r;
+    return output;
 }
 
 function wsdlTypeToInterfaceString(d: { [k: string]: any }, opts: IInterfaceOptions = {}): string {
@@ -145,7 +152,15 @@ function wsdlTypeToInterfaceString(d: { [k: string]: any }, opts: IInterfaceOpti
             if (v.startsWith("/**")) {
                 const i = v.indexOf("*/") + 2;
                 r.push(v.substring(0, i));
-
+                /*
+                let fullType = v.substring(4, v.indexOf('#')-3);
+                fullType = fullType.replace(/:/g, '');
+                if (p.indexOf("\"") === 0) {
+                  p = `"${fullType}:${p.substring(1)}`;
+                } else {
+                  p = JSON.stringify(`${fullType}:${p}`);
+                }
+                */
                 // for types like "xsd:string" only the "string" part is used
                 const rawtype = v.substring(i).trim();
                 const colon = rawtype.indexOf(":");
@@ -181,39 +196,40 @@ export function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITyp
             }
         });
     }).then((client) => {
-        const r: ITypedWsdl = {
+        const output: ITypedWsdl = {
             client,
             files: {},
             methods: {},
             namespaces: {},
             types: {},
+            soapNamespaces: []
         };
-        const d = client.describe();
+        const description = client.describe();
 
-        for (const service of Object.keys(d)) {
-            for (const port of Object.keys(d[service])) {
+        for (const service of Object.keys(description)) {
+            for (const port of Object.keys(description[service])) {
                 const collector = new TypeCollector(port + "Types");
                 // console.log("-- %s.%s", service, port);
 
-                if (!r.types[service]) {
-                    r.types[service] = {};
-                    r.methods[service] = {};
-                    r.files[service] = {};
-                    r.namespaces[service] = {};
+                if (!output.types[service]) {
+                    output.types[service] = {};
+                    output.methods[service] = {};
+                    output.files[service] = {};
+                    output.namespaces[service] = {};
                 }
-                if (!r.types[service][port]) {
-                    r.types[service][port] = {};
-                    r.methods[service][port] = {};
-                    r.files[service][port] = service + "/" + port;
-                    r.namespaces[service][port] = {};
+                if (!output.types[service][port]) {
+                    output.types[service][port] = {};
+                    output.methods[service][port] = {};
+                    output.files[service][port] = service + "/" + port;
+                    output.namespaces[service][port] = {};
                 }
 
                 for (let maxi = 0; maxi < 32; maxi++) {
-                    for (const method of Object.keys(d[service][port])) {
+                    for (const method of Object.keys(description[service][port])) {
                         // console.log("---- %s", method);
 
-                        wsdlTypeToInterface(d[service][port][method].input || {}, collector, opts);
-                        wsdlTypeToInterface(d[service][port][method].output || {}, collector, opts);
+                        wsdlTypeToInterface(description[service][port][method].input || {}, collector, opts);
+                        wsdlTypeToInterface(description[service][port][method].output || {}, collector, opts);
                     }
 
                     const reg = cloneObj(collector.registered);
@@ -237,21 +253,22 @@ export function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITyp
                     }
                 }
 
+                output.soapNamespaces = collector.soapNamespaces;
                 const collectedKeys: string[] = Object.keys(collector.registered);
                 if (collectedKeys.length) {
-                    const ns: { [k: string]: string } = r.namespaces[service][port][collector.ns] = {};
+                    const ns: { [k: string]: string } = output.namespaces[service][port][collector.ns] = {};
                     for (const k of collectedKeys) {
                         ns[k] = "export interface I" + k + " " + collector.registered[k];
                     }
                 }
 
-                for (const method of Object.keys(d[service][port])) {
+                for (const method of Object.keys(description[service][port])) {
 
-                    r.types[service][port]["I" + method + "Input"] =
-                        wsdlTypeToInterface(d[service][port][method].input || {}, collector, opts);
-                    r.types[service][port]["I" + method + "Output"] =
-                        wsdlTypeToInterface(d[service][port][method].output || {}, collector, opts);
-                    r.methods[service][port][method] =
+                    output.types[service][port]["I" + method + "Input"] =
+                        wsdlTypeToInterface(description[service][port][method].input || {}, collector, opts);
+                    output.types[service][port]["I" + method + "Output"] =
+                        wsdlTypeToInterface(description[service][port][method].output || {}, collector, opts);
+                    output.methods[service][port][method] =
                         "(input: I" + method + "Input, " +
                         "cb: (err: any | null," +
                         " result: I" + method + "Output," +
@@ -260,13 +277,13 @@ export function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITyp
                         "options?: any, " +
                         "extraHeaders?: any" +
                         ") => void";
-                    r.methods[service][port][method + "Async"] =
-                        "(input: I" + method + "Input) => Promise<{result: I" + method + "Output, rawResponse: string, soapHeader: {[k: string]: any; }, rawRequest: string}>";
+                    output.methods[service][port][method + "Async"] =
+                        "(input: I" + method + "Input, options?: any, extraHeaders?: any) => Promise<{result: I" + method + "Output, rawResponse: string, soapHeader: {[k: string]: any; }, rawRequest: string}>";
                 }
             }
         }
 
-        return r;
+        return output;
     });
 }
 
@@ -287,6 +304,8 @@ export function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl {
         methods: cloneObj(a.methods),
         namespaces: cloneObj(a.namespaces),
         types: cloneObj(a.types),
+        soapNamespaces: a.soapNamespaces,
+      
     };
     for (const b of bs) {
         for (const service of Object.keys(b.files)) {
@@ -329,9 +348,12 @@ export function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl {
 
 export function outputTypedWsdl(a: ITypedWsdl): Array<{ file: string, data: string[] }> {
     const r: Array<{ file: string, data: string[] }> = [];
+    
     for (const service of Object.keys(a.files)) {
         for (const port of Object.keys(a.files[service])) {
             const d: { file: string, data: string[] } = { file: a.files[service][port], data: [] };
+            const fn = `export function get${d.file.substring(d.file.lastIndexOf('/')+1)}Namespaces(): string[] { \nreturn ${JSON.stringify(a.soapNamespaces,null,4)}; \n}`;
+            d.data.push(fn);
             if (a.types[service] && a.types[service][port]) {
                 for (const type of Object.keys(a.types[service][port])) {
                     d.data.push("export interface " + type + " " + a.types[service][port][type]);
