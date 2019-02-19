@@ -24,6 +24,7 @@ export interface ITypedWsdl {
             [k: string]: string;
         };
     }>;
+    soapNamespaces: string[];
 }
 export declare class TypeCollector {
     readonly ns: string;
@@ -33,6 +34,7 @@ export declare class TypeCollector {
     readonly collected: {
         [k: string]: string;
     };
+    soapNamespaces: string[];
     constructor(ns: string);
     registerCollected(): this;
 }
