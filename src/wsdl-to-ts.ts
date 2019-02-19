@@ -261,7 +261,7 @@ export function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITyp
                         "extraHeaders?: any" +
                         ") => void";
                     r.methods[service][port][method + "Async"] =
-                        "(input: I" + method + "Input => Promise<{result: I" + method + "Output, rawResponse: string, soapHeader: {[k: string]: any; }), rawRequest: string}>";
+                        "(input: I" + method + "Input) => Promise<{result: I" + method + "Output, rawResponse: string, soapHeader: {[k: string]: any; }, rawRequest: string}>";
                 }
             }
         }
