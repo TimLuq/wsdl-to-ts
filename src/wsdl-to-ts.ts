@@ -504,7 +504,7 @@ export function outputTypedWsdl(
       if (a.types[service] && a.types[service][port]) {
         for (const type of Object.keys(a.types[service][port])) {
           d.data.push(
-            "export interface " + type + " " + a.types[service][port][type],
+            "export class " + type + " " + a.types[service][port][type],
           );
         }
       }
