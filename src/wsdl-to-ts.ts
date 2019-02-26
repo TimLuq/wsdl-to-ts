@@ -15,6 +15,7 @@ export interface IInterfaceOptions {
   quoteProperties?: boolean;
 }
 
+
 export interface ITypedWsdl {
   client: soap.Client | null;
   files: ITwoDown<string>;
@@ -84,7 +85,9 @@ function wsdlTypeToInterfaceObj(
               x !== "length" &&
               x !== "pattern" &&
               x !== "maxLength" &&
-              x !== "minLength";
+              x !== "minLength" &&
+              x !== "minInclusive" &&
+              x !== "maxInclusive";
         const tdsplit = typeData.split(",").filter(filter);
         if (tdsplit.length) {
           typeClass = '"' + tdsplit.join('" | "') + '"';
