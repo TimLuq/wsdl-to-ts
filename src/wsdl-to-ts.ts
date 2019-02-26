@@ -478,7 +478,13 @@ export function outputTypedWsdl(
         file: a.files[service][port],
         data: [],
       };
-      const types = _.uniq(knownTypes);
+      const types = _.uniq(knownTypes).filter(
+        e =>
+          e !== "string" &&
+          e !== "number" &&
+          e !== "boolean" &&
+          !e.includes('"'),
+      );
       types.push("IPartialSoapData");
       d.data.push(
         `import { ${types
