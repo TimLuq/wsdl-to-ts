@@ -29,10 +29,16 @@ export interface ITypedWsdl {
 export declare class TypeCollector {
     readonly ns: string;
     readonly registered: {
-        [k: string]: string;
+        [k: string]: {
+            namespace: string;
+            object: string;
+        };
     };
     readonly collected: {
-        [k: string]: string;
+        [k: string]: {
+            namespace: string;
+            object: string;
+        };
     };
     soapNamespaces: string[];
     constructor(ns: string);

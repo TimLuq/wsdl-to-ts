@@ -234,7 +234,6 @@ function wsdlTypeToInterfaceString(
         }
       } else {
         r.push(p + ": " + v);
-        //knownTypes.push(v);
       }
     } else {
       r.push(
@@ -371,6 +370,7 @@ export function wsdl2ts(
             collector,
             opts,
           );
+          /*
           output.methods[service][port][method] =
             "(input: I" +
             method +
@@ -384,10 +384,11 @@ export function wsdl2ts(
             "options?: any, " +
             "extraHeaders?: any" +
             ") => void";
+            */
           output.methods[service][port][method + "Async"] =
-            "(input: I" +
+            "(input: IPartialSoapData<I" +
             method +
-            "Input, options?: any, extraHeaders?: any) => Promise<{result: I" +
+            "Input>, options?: any, extraHeaders?: any) => Promise<{result: I" +
             method +
             "Output, rawResponse: string, soapHeader: {[k: string]: any; }, rawRequest: string}>";
         }
@@ -478,14 +479,13 @@ export function outputTypedWsdl(
         data: [],
       };
       const types = _.uniq(knownTypes);
+      types.push("IPartialSoapData");
       d.data.push(
         `import { ${types
           .map(u => u.replace(";", ""))
           .join(", ")} } from "../wsdl.types";`,
       );
-      d.data.push(
-        `import { XmlNamespace } from "../wsdl.decorators";`,
-      );
+      d.data.push(`import { XmlNamespace } from "../wsdl.decorators";`);
 
       const fn = `export function get${d.file.substring(
         d.file.lastIndexOf("/") + 1,
