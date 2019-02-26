@@ -478,19 +478,17 @@ export function outputTypedWsdl(
         file: a.files[service][port],
         data: [],
       };
-      const types = _.uniq(knownTypes).filter(
-        e =>
-          e !== "string" &&
-          e !== "number" &&
-          e !== "boolean" &&
-          !e.includes('"'),
-      );
+      const types = _.uniq(knownTypes)
+        .map(u => u.replace(";", ""))
+        .filter(
+          e =>
+            e !== "string" &&
+            e !== "number" &&
+            e !== "boolean" &&
+            !e.includes('"'),
+        );
       types.push("IPartialSoapData");
-      d.data.push(
-        `import { ${types
-          .map(u => u.replace(";", ""))
-          .join(", ")} } from "../wsdl.types";`,
-      );
+      d.data.push(`import { ${types.join(", ")} } from "../wsdl.types";`);
       d.data.push(`import { XmlNamespace } from "../wsdl.decorators";`);
 
       const fn = `export function get${d.file.substring(

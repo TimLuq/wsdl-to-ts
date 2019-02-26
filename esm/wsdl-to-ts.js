@@ -386,14 +386,14 @@ export function outputTypedWsdl(a) {
                 file: a.files[service][port],
                 data: [],
             };
-            const types = _.uniq(knownTypes).filter(e => e !== "string" &&
+            const types = _.uniq(knownTypes)
+                .map(u => u.replace(";", ""))
+                .filter(e => e !== "string" &&
                 e !== "number" &&
                 e !== "boolean" &&
                 !e.includes('"'));
             types.push("IPartialSoapData");
-            d.data.push(`import { ${types
-                .map(u => u.replace(";", ""))
-                .join(", ")} } from "../wsdl.types";`);
+            d.data.push(`import { ${types.join(", ")} } from "../wsdl.types";`);
             d.data.push(`import { XmlNamespace } from "../wsdl.decorators";`);
             const fn = `export function get${d.file.substring(d.file.lastIndexOf("/") + 1)}Namespaces(): string[] { \n    return ${JSON.stringify(a.soapNamespaces, null, 4)
                 .split("\n")
