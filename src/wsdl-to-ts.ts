@@ -87,7 +87,12 @@ function wsdlTypeToInterfaceObj(
               x !== "maxLength" &&
               x !== "minLength" &&
               x !== "minInclusive" &&
-              x !== "maxInclusive";
+              x !== "maxInclusive" &&
+              x !== "maxInclusive" &&
+              x !== "maxExclusive" &&
+              x !== "fractionDigits" &&
+              x !== "totalDigits" &&
+              x !== "whiteSpace" ;
         const tdsplit = typeData.split(",").filter(filter);
         if (tdsplit.length) {
           typeClass = '"' + tdsplit.join('" | "') + '"';
