@@ -60,3 +60,6 @@ typings/
 # other
 *~
 /test/results
+
+wsdl
+soap-wsdl
