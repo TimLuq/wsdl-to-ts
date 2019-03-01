@@ -61,7 +61,8 @@ interface IInterfaceObj {
 
 function wsdlTypeToInterfaceObj(
   obj: IInterfaceObject,
-  typeCollector?: TypeCollector,
+  parentName: string,
+  typeCollector: TypeCollector,
 ): IInterfaceObj {
   const output: IInterfaceObj = {
     keys: {},
@@ -72,7 +73,10 @@ function wsdlTypeToInterfaceObj(
       continue;
     }
     const isArray = key.endsWith("[]");
-    const k2 = isArray ? key.substring(0, key.length - 2) : key;
+    const propertyName = isArray ? key.substring(0, key.length - 2) : key;
+    const collectedTypeName = parentName
+      ? `${parentName}_${propertyName}`
+      : propertyName;
     const v = obj[key];
     const t = typeof v;
     if (t === "string") {
@@ -119,25 +123,31 @@ function wsdlTypeToInterfaceObj(
           typeClass = "Array<" + typeClass + ">";
         }
       }
-      output.keys[k2] =
+      output.keys[propertyName] =
         "/** " + typeFullName + "(" + typeData + ") */ " + typeClass + ";";
     } else {
-      const to = wsdlTypeToInterfaceObj(v as IInterfaceObject, typeCollector);
+      const to = wsdlTypeToInterfaceObj(
+        v as IInterfaceObject,
+        propertyName,
+        typeCollector,
+      );
       let tr: { [k: string]: any } | string;
       if (isArray) {
         let s = wsdlTypeToInterfaceString(to.keys);
         if (typeCollector && typeCollector.ns) {
           if (
-            typeCollector.registered.hasOwnProperty(k2) &&
-            typeCollector.registered[k2].object === s
+            typeCollector.registered.hasOwnProperty(collectedTypeName) &&
+            typeCollector.registered[collectedTypeName].object === s
           ) {
-            s = typeCollector.ns + ".I" + k2 + ";";
-          } else if (typeCollector.collected.hasOwnProperty(k2)) {
-            if (typeCollector.collected[k2].object !== s) {
-              typeCollector.collected[k2] = null;
+            s = typeCollector.ns + ".I" + collectedTypeName + ";";
+          } else if (
+            typeCollector.collected.hasOwnProperty(collectedTypeName)
+          ) {
+            if (typeCollector.collected[collectedTypeName].object !== s) {
+              typeCollector.collected[collectedTypeName] = null;
             }
           } else {
-            typeCollector.collected[k2] = {
+            typeCollector.collected[collectedTypeName] = {
               object: s,
               namespace: to.namespace,
             };
@@ -170,23 +180,27 @@ function wsdlTypeToInterfaceObj(
         if (typeCollector && typeCollector.ns) {
           const ss = wsdlTypeToInterfaceString(to.keys);
           if (
-            typeCollector.registered.hasOwnProperty(k2) &&
-            typeCollector.registered[k2].object === ss
+            typeCollector.registered.hasOwnProperty(collectedTypeName) &&
+            typeCollector.registered[collectedTypeName].object === ss
           ) {
-            tr = typeCollector.ns + ".I" + k2 + ";";
-          } else if (typeCollector.collected.hasOwnProperty(k2)) {
-            if (typeCollector.collected[k2].object !== ss) {
-              typeCollector.collected[k2] = null;
+            tr = typeCollector.ns + ".I" + collectedTypeName + ";";
+          } else if (
+            typeCollector.collected.hasOwnProperty(collectedTypeName)
+          ) {
+            if (typeCollector.collected[collectedTypeName].object !== ss) {
+              typeCollector.collected[collectedTypeName] = null;
             }
           } else {
-            typeCollector.collected[k2] = {
+            typeCollector.collected[collectedTypeName] = {
               object: ss,
               namespace: to.namespace,
             };
           }
+        } else {
+          console.log(typeCollector);
         }
       }
-      output.keys[k2] = tr;
+      output.keys[propertyName] = tr;
     }
   }
   // console.log("wsdlTypeToInterfaceObj:", r);
@@ -265,10 +279,11 @@ function wsdlTypeToInterfaceString(
 
 function wsdlTypeToInterface(
   obj: { [k: string]: any },
-  typeCollector?: TypeCollector,
+  parentName: string,
+  typeCollector: TypeCollector,
   opts?: IInterfaceOptions,
 ): string {
-  const interfaceObj = wsdlTypeToInterfaceObj(obj, typeCollector);
+  const interfaceObj = wsdlTypeToInterfaceObj(obj, parentName, typeCollector);
 
   return wsdlTypeToInterfaceString(interfaceObj.keys, opts);
 }
@@ -320,11 +335,13 @@ export function wsdl2ts(
 
             wsdlTypeToInterface(
               description[service][port][method].input || {},
+              method + "Input",
               collector,
               opts,
             );
             wsdlTypeToInterface(
               description[service][port][method].output || {},
+              method + "Output",
               collector,
               opts,
             );
@@ -374,6 +391,7 @@ export function wsdl2ts(
             "I" + method + "Input"
           ] = wsdlTypeToInterface(
             description[service][port][method].input || {},
+            method + "Input",
             collector,
             opts,
           );
@@ -381,6 +399,7 @@ export function wsdl2ts(
             "I" + method + "Output"
           ] = wsdlTypeToInterface(
             description[service][port][method].output || {},
+            method + "Output",
             collector,
             opts,
           );
