@@ -200,16 +200,19 @@ function wsdlTypeToInterfaceString(
   const r: string[] = [];
   for (const k of Object.keys(d)) {
     const t = typeof d[k];
-    let p: string = k;
+    let propertyName: string = k;
     if (
       opts.quoteProperties ||
       (opts.quoteProperties === undefined &&
         !/^[A-Za-z][A-Za-z0-9_-]*$/.test(k))
     ) {
-      p = JSON.stringify(k);
+      propertyName = JSON.stringify(k);
     }
+
+    let type = "";
     if (t === "string") {
       const v = d[k];
+      type = v;
       if (v.startsWith("/**")) {
         const i = v.indexOf("*/") + 2;
         r.push(v.substring(0, i));
@@ -226,23 +229,26 @@ function wsdlTypeToInterfaceString(
         const rawtype = v.substring(i).trim();
         const colon = rawtype.indexOf(":");
         if (colon !== -1) {
-          r.push(p + ": " + rawtype.substring(colon + 1));
-          knownTypes.push(rawtype.substring(colon + 1));
+          type = rawtype.substring(colon + 1);
         } else {
-          r.push(p + ": " + rawtype);
-          knownTypes.push(rawtype);
+          type = rawtype;
         }
-      } else {
-        r.push(p + ": " + v);
+        knownTypes.push(type);
       }
+      // r.push(propertyName + ": " + type);
     } else {
-      r.push(
-        p +
-          ": " +
-          wsdlTypeToInterfaceString(d[k], opts).replace(/\n/g, "\n    ") +
-          ";",
-      );
+      type =
+        wsdlTypeToInterfaceString(d[k], opts).replace(/\n/g, "\n    ") + ";";
     }
+    let shortenedType = type;
+    if (shortenedType.endsWith(";")) {
+      shortenedType = shortenedType.substring(0, shortenedType.length - 1);
+    }
+    if (shortenedType.startsWith("Array<") && shortenedType.endsWith(">")) {
+      shortenedType = shortenedType.substring(6, shortenedType.length - 7);
+    }
+    r.push(`@Type(() => ${shortenedType})`);
+    r.push(propertyName + ": " + type);
   }
   if (r.length === 0) {
     return "{}";
@@ -491,6 +497,7 @@ export function outputTypedWsdl(
       types.push("ArBaseSoapNode");
       d.data.push(`import { ${types.join(", ")} } from "../wsdl.types";`);
       d.data.push(`import { XmlNamespace } from "../wsdl.decorators";`);
+      d.data.push(`import { Type } from "class-transformer";`);
 
       const fn = `export function get${d.file.substring(
         d.file.lastIndexOf("/") + 1,
