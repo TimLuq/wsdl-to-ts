@@ -357,7 +357,7 @@ export function wsdl2ts(
               fullstring += `@XmlNamespace("${obj.namespace}")\n`;
             }
             fullstring +=
-              "export class I" + k + " implements ArBaseSoapNode " + obj.object;
+              "export class I" + k + " extends ArBaseSoapNode " + obj.object;
             ns[k] = fullstring;
           }
         }
@@ -514,7 +514,7 @@ export function outputTypedWsdl(
           d.data.push(
             "export class " +
               type +
-              " implements ArBaseSoapNode " +
+              " extends ArBaseSoapNode " +
               a.types[service][port][type],
           );
         }
