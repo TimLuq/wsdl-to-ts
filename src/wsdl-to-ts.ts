@@ -517,7 +517,7 @@ export function outputTypedWsdl(
       };
       const types = _.uniq(knownTypes)
         .map(u => u.replace(";", ""))
-        .map(u => (u.endsWith(">") ? u.substring(0, u.length - 1) : u))
+        // .map(u => (u.endsWith(">") ? u.substring(0, u.length - 1) : u))
         .filter(
           e =>
             e !== "string" &&
