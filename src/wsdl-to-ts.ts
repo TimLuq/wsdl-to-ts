@@ -251,8 +251,8 @@ function wsdlTypeToInterfaceString(
         } else {
           type = rawtype;
         }
-        if (type.endsWith(">")) {
-          type = type.substring(0, type.length - 1);
+        if (type.endsWith(">;")) {
+          type = type.substring(0, type.length - 2) + ";";
         }
         knownTypes.push(type);
       }
