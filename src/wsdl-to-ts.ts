@@ -273,6 +273,7 @@ function wsdlTypeToInterfaceString(
     if (shortenedType.includes(".") && !shortenedType.startsWith("{")) {
       r.push(`@Type(() => ${shortenedType})`);
     }
+    r.push(`@XmlOrder(${orderCounter++})`);
     r.push(propertyName + ": " + type);
   }
   if (r.length === 0) {
@@ -280,7 +281,7 @@ function wsdlTypeToInterfaceString(
   }
   return "{\n    " + r.join("\n    ") + "\n}";
 }
-
+let orderCounter = 0;
 function wsdlTypeToInterface(
   obj: { [k: string]: any },
   parentName: string,
@@ -527,7 +528,7 @@ export function outputTypedWsdl(
         );
       types.push("ArBaseSoapNode");
       d.data.push(`import { ${types.join(", ")} } from "../wsdl.types";`);
-      d.data.push(`import { XmlNamespace } from "../wsdl.decorators";`);
+      d.data.push(`import { XmlNamespace, XmlOrder } from "../wsdl.decorators";`);
       d.data.push(`import { Type } from "class-transformer";`);
 
       const fn = `export function get${d.file.substring(

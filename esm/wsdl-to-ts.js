@@ -219,6 +219,7 @@ function wsdlTypeToInterfaceString(d, opts = {}) {
         if (shortenedType.includes(".") && !shortenedType.startsWith("{")) {
             r.push(`@Type(() => ${shortenedType})`);
         }
+        r.push(`@XmlOrder(${orderCounter++})`);
         r.push(propertyName + ": " + type);
     }
     if (r.length === 0) {
@@ -226,6 +227,7 @@ function wsdlTypeToInterfaceString(d, opts = {}) {
     }
     return "{\n    " + r.join("\n    ") + "\n}";
 }
+let orderCounter = 0;
 function wsdlTypeToInterface(obj, parentName, typeCollector, opts) {
     const interfaceObj = wsdlTypeToInterfaceObj(obj, parentName, typeCollector);
     return wsdlTypeToInterfaceString(interfaceObj.keys, opts);
@@ -419,7 +421,7 @@ export function outputTypedWsdl(a) {
                 !e.includes('"'));
             types.push("ArBaseSoapNode");
             d.data.push(`import { ${types.join(", ")} } from "../wsdl.types";`);
-            d.data.push(`import { XmlNamespace } from "../wsdl.decorators";`);
+            d.data.push(`import { XmlNamespace, XmlOrder } from "../wsdl.decorators";`);
             d.data.push(`import { Type } from "class-transformer";`);
             const fn = `export function get${d.file.substring(d.file.lastIndexOf("/") + 1)}Namespaces(): string[] { \n    return ${JSON.stringify(a.soapNamespaces, null, 4)
                 .split("\n")
