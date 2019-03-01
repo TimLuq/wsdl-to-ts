@@ -204,7 +204,7 @@ function wsdlTypeToInterfaceString(d, opts = {}) {
                 .substring(0, shortenedType.length - 7);
         }
         if (shortenedType.includes(".") && !shortenedType.startsWith("{")) {
-            r.push(`@Type(() => ${shortenedType})`);
+            // r.push(`@Type(() => ${shortenedType})`);
         }
         r.push(propertyName + ": " + type);
     }
