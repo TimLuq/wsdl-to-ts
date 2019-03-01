@@ -279,7 +279,8 @@ export function wsdl2ts(wsdlUri, opts) {
                         if (obj.namespace) {
                             fullstring += `@XmlNamespace("${obj.namespace}")\n`;
                         }
-                        fullstring += "export class I" + k + " " + obj.object;
+                        fullstring +=
+                            "export class I" + k + " implements ArBaseSoapNode " + obj.object;
                         ns[k] = fullstring;
                     }
                 }
@@ -302,9 +303,9 @@ export function wsdl2ts(wsdlUri, opts) {
                       ") => void";
                       */
                     output.methods[service][port][method + "Async"] =
-                        "(input: IPartialSoapData<I" +
+                        "(input: I" +
                             method +
-                            "Input>, options?: any, extraHeaders?: any) => Promise<{result: I" +
+                            "Input, options?: any, extraHeaders?: any) => Promise<{result: I" +
                             method +
                             "Output, rawResponse: string, soapHeader: {[k: string]: any; }, rawRequest: string}>";
                 }
@@ -392,7 +393,7 @@ export function outputTypedWsdl(a) {
                 e !== "number" &&
                 e !== "boolean" &&
                 !e.includes('"'));
-            types.push("IPartialSoapData");
+            types.push("ArBaseSoapNode");
             d.data.push(`import { ${types.join(", ")} } from "../wsdl.types";`);
             d.data.push(`import { XmlNamespace } from "../wsdl.decorators";`);
             const fn = `export function get${d.file.substring(d.file.lastIndexOf("/") + 1)}Namespaces(): string[] { \n    return ${JSON.stringify(a.soapNamespaces, null, 4)
@@ -401,7 +402,10 @@ export function outputTypedWsdl(a) {
             d.data.push(fn);
             if (a.types[service] && a.types[service][port]) {
                 for (const type of Object.keys(a.types[service][port])) {
-                    d.data.push("export class " + type + " " + a.types[service][port][type]);
+                    d.data.push("export class " +
+                        type +
+                        " implements ArBaseSoapNode " +
+                        a.types[service][port][type]);
                 }
             }
             if (a.methods[service] && a.methods[service][port]) {
