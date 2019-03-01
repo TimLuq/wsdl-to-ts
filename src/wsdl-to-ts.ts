@@ -216,6 +216,8 @@ function wsdlTypeToInterfaceString(
   opts: IInterfaceOptions = {},
 ): string {
   const r: string[] = [];
+  let orderCounter = 0;
+
   for (const k of Object.keys(d)) {
     const t = typeof d[k];
     let propertyName: string = k;
@@ -281,7 +283,6 @@ function wsdlTypeToInterfaceString(
   }
   return "{\n    " + r.join("\n    ") + "\n}";
 }
-let orderCounter = 0;
 function wsdlTypeToInterface(
   obj: { [k: string]: any },
   parentName: string,
