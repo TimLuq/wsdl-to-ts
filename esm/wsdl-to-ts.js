@@ -134,7 +134,8 @@ function wsdlTypeToInterfaceObj(obj, parentName, typeCollector) {
                         typeCollector.registered[collectedTypeName].object === ss) {
                         tr = typeCollector.ns + ".I" + collectedTypeName + ";";
                     }
-                    else if (typeCollector.collected.hasOwnProperty(collectedTypeName)) {
+                    else if (typeCollector.collected.hasOwnProperty(collectedTypeName) &&
+                        typeCollector.collected[collectedTypeName] != null) {
                         if (typeCollector.collected[collectedTypeName].object !== ss) {
                             typeCollector.collected[collectedTypeName] = null;
                         }
