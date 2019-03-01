@@ -82,16 +82,18 @@ function wsdlTypeToInterfaceObj(obj, parentName, typeCollector) {
                 "/** " + typeFullName + "(" + typeData + ") */ " + typeClass + ";";
         }
         else {
-            const to = wsdlTypeToInterfaceObj(v, propertyName, typeCollector);
+            const to = wsdlTypeToInterfaceObj(v, `${parentName}_${propertyName}`, typeCollector);
             let tr;
             if (isArray) {
                 let s = wsdlTypeToInterfaceString(to.keys);
                 if (typeCollector && typeCollector.ns) {
                     if (typeCollector.registered.hasOwnProperty(collectedTypeName) &&
+                        typeCollector.registered[collectedTypeName] &&
                         typeCollector.registered[collectedTypeName].object === s) {
                         s = typeCollector.ns + ".I" + collectedTypeName + ";";
                     }
-                    else if (typeCollector.collected.hasOwnProperty(collectedTypeName)) {
+                    else if (typeCollector.collected.hasOwnProperty(collectedTypeName) &&
+                        typeCollector.collected[collectedTypeName]) {
                         if (typeCollector.collected[collectedTypeName].object !== s) {
                             typeCollector.collected[collectedTypeName] = null;
                         }
@@ -131,11 +133,12 @@ function wsdlTypeToInterfaceObj(obj, parentName, typeCollector) {
                 if (typeCollector && typeCollector.ns) {
                     const ss = wsdlTypeToInterfaceString(to.keys);
                     if (typeCollector.registered.hasOwnProperty(collectedTypeName) &&
+                        typeCollector.registered[collectedTypeName] &&
                         typeCollector.registered[collectedTypeName].object === ss) {
                         tr = typeCollector.ns + ".I" + collectedTypeName + ";";
                     }
                     else if (typeCollector.collected.hasOwnProperty(collectedTypeName) &&
-                        typeCollector.collected[collectedTypeName] != null) {
+                        typeCollector.collected[collectedTypeName]) {
                         if (typeCollector.collected[collectedTypeName].object !== ss) {
                             typeCollector.collected[collectedTypeName] = null;
                         }
