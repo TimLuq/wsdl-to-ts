@@ -166,7 +166,7 @@ function wsdlTypeToInterfaceObj(
 
         tr = s;
       } else {
-        tr = to;
+        tr = to.keys;
         if (typeCollector && typeCollector.ns) {
           const ss = wsdlTypeToInterfaceString(to.keys);
           if (
