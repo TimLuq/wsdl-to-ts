@@ -233,6 +233,9 @@ function wsdlTypeToInterfaceString(
         } else {
           type = rawtype;
         }
+        if (type.endsWith(">")) {
+          type = type.substring(0, type.length - 1);
+        }
         knownTypes.push(type);
       }
       // r.push(propertyName + ": " + type);
@@ -250,7 +253,7 @@ function wsdlTypeToInterfaceString(
         .substring(0, shortenedType.length - 7);
     }
     if (shortenedType.includes(".") && !shortenedType.startsWith("{")) {
-      // r.push(`@Type(() => ${shortenedType})`);
+      r.push(`@Type(() => ${shortenedType})`);
     }
     r.push(propertyName + ": " + type);
   }
@@ -491,6 +494,7 @@ export function outputTypedWsdl(
       };
       const types = _.uniq(knownTypes)
         .map(u => u.replace(";", ""))
+        .map(u => (u.endsWith(">") ? u.substring(0, u.length - 1) : u))
         .filter(
           e =>
             e !== "string" &&
