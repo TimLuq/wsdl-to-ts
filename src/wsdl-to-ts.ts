@@ -1,5 +1,7 @@
 import * as soap from "soap";
 import * as _ from "lodash";
+import Templates from "./template";
+import { resolve, relative } from "path";
 // import { diffLines } from "diff";
 
 export const nsEnums: { [k: string]: boolean } = {};
@@ -23,6 +25,7 @@ export interface ITypedWsdl {
   types: ITwoDown<{ [k: string]: string }>;
   namespaces: ITwoDown<{ [k: string]: { [k: string]: string } }>;
   soapNamespaces: string[];
+  endpoint: string;
 }
 
 export class TypeCollector {
@@ -314,8 +317,16 @@ export function wsdl2ts(
       namespaces: {},
       types: {},
       soapNamespaces: [],
+      endpoint: "",
     };
     const description = client.describe();
+
+    const describedServices = (client as any).wsdl.services;
+    const describedService =
+      describedServices[Object.keys(describedServices)[0]];
+    const describecPorts = describedService.ports;
+    const describedPort = describecPorts[Object.keys(describecPorts)[0]];
+    output.endpoint = describedPort.location;
 
     for (const service of Object.keys(description)) {
       for (const port of Object.keys(description[service])) {
@@ -360,7 +371,10 @@ export function wsdl2ts(
           if (regKeys0.length === regKeys1.length) {
             let noChange = true;
             for (const rk of regKeys0) {
-              if (collector.registered[rk] !== reg[rk]) {
+              if (
+                JSON.stringify(collector.registered[rk]) !==
+                JSON.stringify(reg[rk])
+              ) {
                 noChange = false;
                 break;
               }
@@ -369,7 +383,7 @@ export function wsdl2ts(
               break;
             }
           }
-          if (maxi === 131) {
+          if (maxi === 31) {
             console.warn("wsdl-to-ts: Aborted nested interface changes");
           }
         }
@@ -454,12 +468,13 @@ function cloneObj<T extends { [k: string]: any }>(a: T): T {
 
 export function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl {
   const x: ITypedWsdl = {
-    client: null,
+    client: a.client,
     files: cloneObj(a.files),
     methods: cloneObj(a.methods),
     namespaces: cloneObj(a.namespaces),
     types: cloneObj(a.types),
     soapNamespaces: a.soapNamespaces,
+    endpoint: a.endpoint,
   };
   for (const b of bs) {
     for (const service of Object.keys(b.files)) {
@@ -513,10 +528,19 @@ export function outputTypedWsdl(
 
   for (const service of Object.keys(a.files)) {
     for (const port of Object.keys(a.files[service])) {
-      const d: { file: string; data: string[] } = {
-        file: a.files[service][port],
+      const fileName = a.files[service][port].replace("Soap", "");
+      const interfaceFile: { file: string; data: string[] } = {
+        file: fileName + "Types",
         data: [],
       };
+      const serviceFile: { file: string; data: string[] } = {
+        file: fileName,
+        data: [],
+      };
+      const absoluteWsdl = resolve(a.client.wsdl.uri);
+      const absoluteServiceFile = resolve(fileName);
+      const relativeWsdl = relative(absoluteServiceFile, absoluteWsdl);
+
       const types = _.uniq(knownTypes)
         .map(u => u.replace(";", ""))
         // .map(u => (u.endsWith(">") ? u.substring(0, u.length - 1) : u))
@@ -528,23 +552,22 @@ export function outputTypedWsdl(
             !e.includes('"'),
         );
       types.push("ArBaseSoapNode");
-      d.data.push(`import { ${types.join(", ")} } from "../wsdl.types";`);
-      d.data.push(`import { XmlNamespace, XmlOrder } from "../wsdl.decorators";`);
-      d.data.push(`import { Type } from "class-transformer";`);
+      interfaceFile.data.push(
+        `import { ${types.join(", ")} } from "../../wsdl.types";`,
+      );
+      interfaceFile.data.push(
+        `import { XmlNamespace, XmlOrder } from "../../wsdl.decorators";`,
+      );
+      interfaceFile.data.push(`import { Type } from "class-transformer";`);
 
-      const fn = `export function get${d.file.substring(
-        d.file.lastIndexOf("/") + 1,
-      )}Namespaces(): string[] { \n    return ${JSON.stringify(
-        a.soapNamespaces,
-        null,
-        4,
-      )
-        .split("\n")
-        .join("\n    ")}; \n}`;
-      d.data.push(fn);
+      interfaceFile.data.push(
+        `export const ${interfaceFile.file.substring(
+          interfaceFile.file.lastIndexOf("/") + 1,
+        )}Namespaces: string[] = ${JSON.stringify(a.soapNamespaces)};`,
+      );
       if (a.types[service] && a.types[service][port]) {
         for (const type of Object.keys(a.types[service][port])) {
-          d.data.push(
+          interfaceFile.data.push(
             "export class " +
               type +
               " extends ArBaseSoapNode " +
@@ -554,11 +577,30 @@ export function outputTypedWsdl(
       }
       if (a.methods[service] && a.methods[service][port]) {
         const ms: string[] = [];
+
+        serviceFile.data.push(
+          Templates.serviceHeaderTemplate({
+            serviceName: service,
+            defaultEndpoint: a.endpoint,
+            wsdlLocation: relativeWsdl,
+          }),
+        );
+
         for (const method of Object.keys(a.methods[service][port])) {
+          const templateObj = {
+            methodName: method,
+            serviceName: service,
+          };
           ms.push(method + ": " + a.methods[service][port][method] + ";");
+          serviceFile.data.unshift(
+            Templates.serviceImportTemplate(templateObj),
+          );
+          serviceFile.data.push(Templates.serviceMethodTemplate(templateObj));
         }
+        serviceFile.data.push("}");
+
         if (ms.length) {
-          d.data.push(
+          interfaceFile.data.push(
             "export interface I" +
               port +
               "Soap {\n    " +
@@ -576,13 +618,14 @@ export function outputTypedWsdl(
             );
           }
           if (ms.length) {
-            d.data.push(
+            interfaceFile.data.push(
               "export namespace " + ns + " {\n    " + ms.join("\n    ") + "\n}",
             );
           }
         }
       }
-      r.push(d);
+      r.push(interfaceFile);
+      r.push(serviceFile);
     }
   }
   return r;
