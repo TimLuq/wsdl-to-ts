@@ -25,6 +25,7 @@ export interface ITypedWsdl {
         };
     }>;
     soapNamespaces: string[];
+    endpoint: string;
 }
 export declare class TypeCollector {
     readonly ns: string;
