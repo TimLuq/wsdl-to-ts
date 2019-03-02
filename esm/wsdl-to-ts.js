@@ -427,7 +427,7 @@ export function outputTypedWsdl(a) {
                 file: fileName,
                 data: [],
             };
-            const relativeTypesPath = path.relative(fileName, fileName + "Types");
+            const relativeTypesPath = path.relative(fileName, fileName + "Types").substring(1);
             const absoluteWsdl = path.resolve(a.client.wsdl.uri);
             const absoluteServiceFile = path.resolve(fileName);
             const relativeWsdl = path.relative(absoluteServiceFile, absoluteWsdl);
