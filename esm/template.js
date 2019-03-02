@@ -1,7 +1,8 @@
 export default class Templates {
     static serviceHeaderTemplate(body) {
-        return `import { BaseSoapService } from '../../wsdl.client';
+        return `import { BaseSoapService, IArSoapOptions } from '../../wsdl.client';
 import { RecursivePartial } from '../../wsdl.types';
+import { IOptions } from 'soap';
 
 export class ${body.serviceName} extends BaseSoapService {
 
@@ -17,7 +18,7 @@ async createClient(endpoint: string, options: IOptions & IArSoapOptions): Promis
   `;
     }
     static serviceImportTemplate(body) {
-        return `import { I${body.methodName}Input, I${body.methodName}Output } from "./${body.serviceName}Types";`;
+        return `import { I${body.methodName}Input, I${body.methodName}Output } from "${body.relativeTypesPath}";`;
     }
     static serviceMethodTemplate(body) {
         return `async ${body.methodName}(

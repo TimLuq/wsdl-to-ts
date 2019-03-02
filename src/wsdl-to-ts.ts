@@ -1,7 +1,7 @@
 import * as soap from "soap";
 import * as _ from "lodash";
 import Templates from "./template";
-import { resolve, relative } from "path";
+import * as path from "path";
 // import { diffLines } from "diff";
 
 export const nsEnums: { [k: string]: boolean } = {};
@@ -537,9 +537,10 @@ export function outputTypedWsdl(
         file: fileName,
         data: [],
       };
-      const absoluteWsdl = resolve(a.client.wsdl.uri);
-      const absoluteServiceFile = resolve(fileName);
-      const relativeWsdl = relative(absoluteServiceFile, absoluteWsdl);
+      const relativeTypesPath = path.relative(fileName, fileName + "Types");
+      const absoluteWsdl = path.resolve(a.client.wsdl.uri);
+      const absoluteServiceFile = path.resolve(fileName);
+      const relativeWsdl = path.relative(absoluteServiceFile, absoluteWsdl);
 
       const types = _.uniq(knownTypes)
         .map(u => u.replace(";", ""))
@@ -563,7 +564,7 @@ export function outputTypedWsdl(
       interfaceFile.data.push(
         `export const ${interfaceFile.file.substring(
           interfaceFile.file.lastIndexOf("/") + 1,
-        )}Namespaces: string[] = ${JSON.stringify(a.soapNamespaces)};`,
+        )}Namespaces: string[] = ${JSON.stringify(a.soapNamespaces, null, 4)};`,
       );
       if (a.types[service] && a.types[service][port]) {
         for (const type of Object.keys(a.types[service][port])) {
@@ -580,6 +581,7 @@ export function outputTypedWsdl(
 
         serviceFile.data.push(
           Templates.serviceHeaderTemplate({
+            relativeTypesPath,
             serviceName: service,
             defaultEndpoint: a.endpoint,
             wsdlLocation: relativeWsdl,
@@ -588,8 +590,9 @@ export function outputTypedWsdl(
 
         for (const method of Object.keys(a.methods[service][port])) {
           const templateObj = {
-            methodName: method,
+            methodName: method.replace("Async", ""),
             serviceName: service,
+            relativeTypesPath,
           };
           ms.push(method + ": " + a.methods[service][port][method] + ";");
           serviceFile.data.unshift(
