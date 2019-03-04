@@ -27,7 +27,7 @@ export class TypeCollector {
 function wsdlTypeToInterfaceObj(obj, parentName, typeCollector) {
     const output = {
         keys: {},
-        namespace: obj.targetNamespace,
+        namespace: obj.targetNSAlias === "tns" ? "" : obj.targetNamespace,
     };
     for (const key of Object.keys(obj)) {
         if (key === "targetNSAlias" || key === "targetNamespace") {
@@ -46,7 +46,11 @@ function wsdlTypeToInterfaceObj(obj, parentName, typeCollector) {
             if (obj.targetNamespace &&
                 typeCollector &&
                 typeof obj.targetNamespace === "string" &&
-                typeCollector.soapNamespaces.indexOf(obj.targetNamespace) < 0) {
+                typeCollector.soapNamespaces.indexOf(obj.targetNamespace) <
+                    0 &&
+                typeof obj.targetNSAlias === "string" &&
+                typeCollector.soapNamespaces.indexOf(obj.targetNSAlias) < 0 &&
+                obj.targetNSAlias !== "tns") {
                 typeCollector.soapNamespaces.push(obj.targetNamespace);
             }
             const typeFullName = obj.targetNamespace
@@ -427,7 +431,9 @@ export function outputTypedWsdl(a) {
                 file: fileName,
                 data: [],
             };
-            const relativeTypesPath = path.relative(fileName, fileName + "Types").substring(1);
+            const relativeTypesPath = path
+                .relative(fileName, fileName + "Types")
+                .substring(1);
             const absoluteWsdl = path.resolve(a.client.wsdl.uri);
             const absoluteServiceFile = path.resolve(fileName);
             const relativeWsdl = path.relative(absoluteServiceFile, absoluteWsdl);
@@ -443,6 +449,17 @@ export function outputTypedWsdl(a) {
             interfaceFile.data.push(`import { XmlNamespace, XmlOrder } from "../../wsdl.decorators";`);
             interfaceFile.data.push(`import { Type } from "class-transformer";`);
             interfaceFile.data.push(`export const ${interfaceFile.file.substring(interfaceFile.file.lastIndexOf("/") + 1)}Namespaces: string[] = ${JSON.stringify(a.soapNamespaces, null, 4)};`);
+            if (a.namespaces[service] && a.namespaces[service][port]) {
+                for (const ns of Object.keys(a.namespaces[service][port])) {
+                    const ms = [];
+                    for (const nsi of Object.keys(a.namespaces[service][port][ns])) {
+                        ms.push(a.namespaces[service][port][ns][nsi].replace(/\n/g, "\n    "));
+                    }
+                    if (ms.length) {
+                        interfaceFile.data.push("export namespace " + ns + " {\n    " + ms.join("\n    ") + "\n}");
+                    }
+                }
+            }
             if (a.types[service] && a.types[service][port]) {
                 for (const type of Object.keys(a.types[service][port])) {
                     interfaceFile.data.push("export class " +
@@ -476,17 +493,6 @@ export function outputTypedWsdl(a) {
                         "Soap {\n    " +
                         ms.join("\n    ") +
                         "\n}");
-                }
-            }
-            if (a.namespaces[service] && a.namespaces[service][port]) {
-                for (const ns of Object.keys(a.namespaces[service][port])) {
-                    const ms = [];
-                    for (const nsi of Object.keys(a.namespaces[service][port][ns])) {
-                        ms.push(a.namespaces[service][port][ns][nsi].replace(/\n/g, "\n    "));
-                    }
-                    if (ms.length) {
-                        interfaceFile.data.push("export namespace " + ns + " {\n    " + ms.join("\n    ") + "\n}");
-                    }
                 }
             }
             r.push(interfaceFile);

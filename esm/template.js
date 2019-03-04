@@ -12,8 +12,8 @@ constructor() {
     super();
 }
 
-async createClient(endpoint: string, options: IOptions & IArSoapOptions): Promise<void> {
-    return this.createClientAsync( __dirname + "${body.wsdlLocation}", endpoint, options);
+async createClientAsync(endpoint: string, options: IOptions & IArSoapOptions): Promise<void> {
+    return this.createClientWithWsdlPathAsync( __dirname + "${body.wsdlLocation}", endpoint, options);
 }
   `;
     }
@@ -21,7 +21,7 @@ async createClient(endpoint: string, options: IOptions & IArSoapOptions): Promis
         return `import { I${body.methodName}Input, I${body.methodName}Output } from "${body.relativeTypesPath}";`;
     }
     static serviceMethodTemplate(body) {
-        return `async ${body.methodName}(
+        return `async ${body.methodName}Async(
   inputData: RecursivePartial<I${body.methodName}Input>,
   options?: object,
   extraHeaders?: object
