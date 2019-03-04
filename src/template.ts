@@ -3,6 +3,7 @@ export default class Templates {
     return `import { BaseSoapService, IArSoapOptions } from '../../wsdl.client';
 import { RecursivePartial } from '../../wsdl.types';
 import { IOptions } from 'soap';
+import * as path from 'path';
 
 export class ${body.serviceName} extends BaseSoapService {
 
@@ -13,7 +14,7 @@ constructor() {
 }
 
 async createClientAsync(endpoint: string, options: IOptions & IArSoapOptions): Promise<void> {
-    return this.createClientWithWsdlPathAsync( __dirname + "${body.wsdlLocation}", endpoint, options);
+    return this.createClientWithWsdlPathAsync( path.join(__dirname, "${body.wsdlLocation}"), endpoint, options);
 }
   `;
   }

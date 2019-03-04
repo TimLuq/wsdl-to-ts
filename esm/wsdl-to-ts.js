@@ -435,7 +435,7 @@ export function outputTypedWsdl(a) {
                 .relative(fileName, fileName + "Types")
                 .substring(1);
             const absoluteWsdl = path.resolve(a.client.wsdl.uri);
-            const absoluteServiceFile = path.resolve(fileName);
+            const absoluteServiceFile = path.resolve(fileName) + "/workaround";
             const relativeWsdl = path.relative(absoluteServiceFile, absoluteWsdl);
             const types = _.uniq(knownTypes)
                 .map(u => u.replace(";", ""))
