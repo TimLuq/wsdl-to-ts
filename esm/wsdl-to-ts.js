@@ -27,7 +27,7 @@ export class TypeCollector {
 function wsdlTypeToInterfaceObj(obj, parentName, typeCollector) {
     const output = {
         keys: {},
-        namespace: obj.targetNSAlias === "tns" ? "" : obj.targetNamespace,
+        namespace: /* obj.targetNSAlias === "tns" ? "" :*/ obj.targetNamespace,
     };
     for (const key of Object.keys(obj)) {
         if (key === "targetNSAlias" || key === "targetNamespace") {
@@ -46,11 +46,13 @@ function wsdlTypeToInterfaceObj(obj, parentName, typeCollector) {
             if (obj.targetNamespace &&
                 typeCollector &&
                 typeof obj.targetNamespace === "string" &&
-                typeCollector.soapNamespaces.indexOf(obj.targetNamespace) <
-                    0 &&
-                typeof obj.targetNSAlias === "string" &&
-                typeCollector.soapNamespaces.indexOf(obj.targetNSAlias) < 0 &&
-                obj.targetNSAlias !== "tns") {
+                typeCollector.soapNamespaces.indexOf(obj.targetNamespace) < 0
+            /* &&
+            typeof obj.targetNSAlias === "string" &&
+            typeCollector.soapNamespaces.indexOf(obj.targetNSAlias as string) < 0 &&
+            obj.targetNSAlias !== "tns"
+            */
+            ) {
                 typeCollector.soapNamespaces.push(obj.targetNamespace);
             }
             const typeFullName = obj.targetNamespace

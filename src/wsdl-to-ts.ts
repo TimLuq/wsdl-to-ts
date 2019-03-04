@@ -69,8 +69,7 @@ function wsdlTypeToInterfaceObj(
 ): IInterfaceObj {
   const output: IInterfaceObj = {
     keys: {},
-    namespace:
-      obj.targetNSAlias === "tns" ? "" : (obj.targetNamespace as string),
+    namespace: /* obj.targetNSAlias === "tns" ? "" :*/ obj.targetNamespace as string,
   };
   for (const key of Object.keys(obj)) {
     if (key === "targetNSAlias" || key === "targetNamespace") {
@@ -92,11 +91,12 @@ function wsdlTypeToInterfaceObj(
         obj.targetNamespace &&
         typeCollector &&
         typeof obj.targetNamespace === "string" &&
-        typeCollector.soapNamespaces.indexOf(obj.targetNamespace as string) <
-          0 &&
+        typeCollector.soapNamespaces.indexOf(obj.targetNamespace as string) < 0
+        /* &&
         typeof obj.targetNSAlias === "string" &&
         typeCollector.soapNamespaces.indexOf(obj.targetNSAlias as string) < 0 &&
         obj.targetNSAlias !== "tns"
+        */
       ) {
         typeCollector.soapNamespaces.push(obj.targetNamespace);
       }
