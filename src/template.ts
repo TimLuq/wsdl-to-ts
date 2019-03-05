@@ -35,7 +35,7 @@ async createClientAsync(endpoint: string, options: IOptions & IArSoapOptions): P
     soapHeader: { [k: string]: any };
     rawRequest: string;
   }> {
-  return await this.executeSoapMethod(I${body.methodName}Input, "${
+  return await this.executeSoapMethod<I${body.methodName}Input, I${body.methodName}Output>(I${body.methodName}Input, "${
       body.methodName
     }", inputData, options, extraHeaders);
 }`;
