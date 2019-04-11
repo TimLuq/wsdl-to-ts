@@ -150,7 +150,13 @@ function wsdlTypeToInterfaceString(d: { [k: string]: any }, opts: IInterfaceOpti
                 const rawtype = v.substring(i).trim();
                 const colon = rawtype.indexOf(":");
                 if (colon !== -1) {
-                    r.push(p + ": " + rawtype.substring(colon + 1));
+                    const preamble = rawtype.substring(0, colon);
+                    const lastOpenBracket = preamble.lastIndexOf("<");
+                    if (lastOpenBracket !== -1) {
+                      r.push(p + ": " + preamble.substring(0, lastOpenBracket + 1) + rawtype.substring(colon + 1));
+                    } else {
+                      r.push(p + ": " + rawtype.substring(colon + 1));
+                    }
                 } else {
                     r.push(p + ": " + rawtype);
                 }
