@@ -2,6 +2,7 @@
 'use strict';
 
 import { rename, writeFile } from 'fs';
+import * as path from 'path';
 import * as minimist from 'minimist';
 import * as mkdirp from 'mkdirp';
 import { IInterfaceOptions, ITypedWsdl, mergeTypedWsdl, outputTypedWsdl, wsdl2ts } from './wsdl-to-ts';
@@ -52,7 +53,11 @@ if (args.hasOwnProperty('tslint-disable')) {
 if (args.outdir || args.outDir) {
   config.outdir = args.outdir || args.outDir;
 }
+let wsdlImportBasePath: string = '';
 
+if (args.wsdlImportBasePath || args.wsdlImportBasePath) {
+  wsdlImportBasePath = path.resolve(args.wsdlImportBasePath || args.wsdlImportBasePath);
+}
 if (args.hasOwnProperty('quote')) {
   if (args.quote === 'false' || args.quote === 'disable' || args.quote === '0') {
     opts.quoteProperties = false;
@@ -85,7 +90,7 @@ function mkdirpp(dir: string, mode?: number): Promise<string> {
 
 Promise.all(config.files.map(a => wsdl2ts(a, opts)))
   .then(xs => mergeTypedWsdl.apply(undefined, xs))
-  .then(outputTypedWsdl)
+  .then(a => outputTypedWsdl(a, { wsdlImportBasePath }))
   .then((xs: Array<{ file: string; data: string[] }>) => {
     return Promise.all(
       xs.map(x => {

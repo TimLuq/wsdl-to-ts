@@ -471,7 +471,10 @@ export function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl {
   return x;
 }
 
-export function outputTypedWsdl(a: ITypedWsdl): Array<{ file: string; data: string[] }> {
+export function outputTypedWsdl(
+  a: ITypedWsdl,
+  outputConfig: { wsdlImportBasePath: string },
+): Array<{ file: string; data: string[] }> {
   const r: Array<{ file: string; data: string[] }> = [];
 
   for (const service of Object.keys(a.files)) {
@@ -494,7 +497,10 @@ export function outputTypedWsdl(a: ITypedWsdl): Array<{ file: string; data: stri
         .substring(1);
       const absoluteWsdl = path.resolve(a.client.wsdl.uri);
       const absoluteServiceFile = path.resolve(fileName) + '/workaround';
-      const relativeWsdl = path.relative(absoluteServiceFile, absoluteWsdl);
+      const relativeWsdl = path.relative(
+        outputConfig.wsdlImportBasePath ? outputConfig.wsdlImportBasePath : absoluteServiceFile,
+        absoluteWsdl,
+      );
 
       const types = _.uniq(knownTypes)
         .map(u => u.replace(';', ''))
