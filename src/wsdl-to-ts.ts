@@ -264,7 +264,7 @@ function wsdlTypeToInterfaceString(d: { [k: string]: any }, opts: IInterfaceOpti
       r.push(`@Type(() => ${shortenedType})`);
     }
     r.push(`@XmlOrder(${orderCounter++})`);
-    r.push(propertyName + ': ' + type);
+    r.push(propertyName + '?: ' + type);
   }
   if (r.length === 0) {
     return '{}';
