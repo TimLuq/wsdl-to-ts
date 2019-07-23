@@ -20,9 +20,7 @@ async createClientAsync(endpoint: string, options: IOptions & IArSoapOptions): P
   }
 
   public static serviceImportTemplate(body: any) {
-    return `import { I${body.methodName}Input, I${
-      body.methodName
-    }Output } from "${body.relativeTypesPath}";`;
+    return `import { I${body.methodName}Input, I${body.methodName}Output } from "${body.relativeTypesPath}";`;
   }
   public static serviceMethodTemplate(body: any) {
     return `async ${body.methodName}Async(

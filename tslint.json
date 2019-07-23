@@ -5,8 +5,8 @@
     "no-unused-expression": true
   },
   "rules": {
-    "no-namespace":false,
-    "no-console":false,
+    "no-namespace": false,
+    "no-console": false,
     "no-bitwise": false,
     "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
     "member-access": [false],
@@ -16,7 +16,8 @@
     "interface-name": [false],
     "arrow-parens": false,
     "object-literal-sort-keys": false,
-    "max-classes-per-file": false
+    "max-classes-per-file": false,
+    "quotemark": [true, "single"]
   },
   "rulesDirectory": []
 }
