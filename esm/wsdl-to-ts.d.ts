@@ -1,4 +1,4 @@
-import * as soap from "soap";
+import * as soap from 'soap';
 export declare const nsEnums: {
     [k: string]: boolean;
 };
@@ -36,7 +36,9 @@ export declare class TypeCollector {
     constructor(ns: string);
     registerCollected(): this;
 }
-export declare function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITypedWsdl>;
+export declare function wsdl2ts(wsdlUri: string, wsdl_options: {
+    [key: string]: any;
+}, opts?: IInterfaceOptions): Promise<ITypedWsdl>;
 export declare function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl;
 export declare function outputTypedWsdl(a: ITypedWsdl): Array<{
     file: string;
