@@ -12,12 +12,14 @@
         "rootDir": "src",
         "outDir": "lib",
         "lib": [
-            "es6"
+            "es6",
+            "es2017"
         ]
     },
     "exclude": [
         "node_modules",
         "lib",
-        "esm"
+        "esm",
+        "wsdl"
     ]
 }

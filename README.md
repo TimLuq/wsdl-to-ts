@@ -74,3 +74,64 @@ $ wsdl-to-ts --outdir="./some/other/dir" "https://www.w3schools.com/xml/tempconv
 * `--tslint=RULE0,RULE1,RULE2` - Enable specified rules in all generated files.
 * `--tslint=false` - Disables tslint in all generated files.
 * `--tslint-disable=RULE0,RULE1,RULE2` - Disable specified rules in all generated files.
+
+Optionally to disable ssl or add basic auth to the soap service pass in:
+
+* `--url` - pass in the wsdl url 
+* `--user` - pass in the user name for basic authentication
+* `--password` - pass in the password for basic authentication
+
+#### Example VSCode setup
+
+tasks.json
+```json
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558 
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "npm",
+            "script": "build",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "debug",
+            "problemMatcher": []
+        }
+    ]
+}
+```
+launch.json
+```json
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch via NPM",
+            "preLaunchTask": "npm: build",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script",
+                "debug",
+                "--",
+                "--url",
+                "<https://wsdl.com/blah?wsdl>",
+                "--user",
+                "<username>",
+                "--password" ,
+                "<password>"
+                "--verifySSL",
+                "<true/false>"
+            ],
+            "port": 9229
+        }
+    ]
+}
+```

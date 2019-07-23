@@ -6,8 +6,10 @@
   "module": "esm/wsdl-to-ts.js",
   "types": "esm/wsdl-to-ts.d.ts",
   "scripts": {
+    "debug": "node --nolazy --inspect-brk=9229 lib/index.js",
     "test": "node test/index.js",
-    "build": "npx tsc -p tsconfig.json && npx tsc -p tsconfig.json -d --outDir esm --module es2015 --target es2016",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "build": "npx ./node_modules/.bin/tsc -p tsconfig.json && npx ./node_modules/.bin/tsc -p tsconfig.json -d --outDir esm --module es2015 --target es2016",
     "ci": "npm run build && npm test"
   },
   "bin": {
@@ -25,17 +27,21 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "@types/bluebird": "^3.5.23",
+    "@types/bluebird": "^3.5.27",
     "@types/minimist": "^1.2.0",
-    "@types/mkdirp": ">=0.5.1 <1.0.0",
-    "@types/node": ">=6.0.0 <12.0.0",
-    "tslint": "^5.11.0",
-    "typescript": "^2.2.0"
+    "@types/mkdirp": "^0.5.2",
+    "@types/node": "^12.6.8",
+    "@types/request": "^2.48.2",
+    "prettier": "^1.18.2",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3"
   },
   "dependencies": {
+    "@types/prettier": "^1.18.0",
     "minimist": "^1.2.0",
     "mkdirp": ">=0.5.1 <1.0.0",
-    "soap": ">=0.21.0 <1.0.0"
+    "request": "^2.88.0",
+    "soap": "^0.28.0"
   },
   "bugs": {
     "url": "https://github.com/TimLuq/wsdl-to-ts/issues"
