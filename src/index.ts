@@ -92,7 +92,7 @@ function mkdirpp(dir: string, mode?: number): Promise<string> {
 
 Promise.all(config.files.map(a => wsdl2ts(a, opts)))
   .then(xs => mergeTypedWsdl.apply(undefined, xs))
-  .then(a => outputTypedWsdl(a, { wsdlImportBasePath }))
+  .then(a => outputTypedWsdl(a, { wsdlImportBasePath, forceNamespaceOnInputRoot: opts.forceNamespaceOnInputRoot }))
   .then((xs: Array<{ file: string; data: string[] }>) => {
     return Promise.all(
       xs.map(x => {

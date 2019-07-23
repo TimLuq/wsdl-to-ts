@@ -50,6 +50,7 @@ export declare function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Prom
 export declare function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl;
 export declare function outputTypedWsdl(a: ITypedWsdl, outputConfig: {
     wsdlImportBasePath: string;
+    forceNamespaceOnInputRoot?: string;
 }): Array<{
     file: string;
     data: string[];

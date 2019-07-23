@@ -374,15 +374,12 @@ export function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITyp
         }
 
         for (const method of Object.keys(description[service][port])) {
-          let inputType = wsdlTypeToInterface(
+          const inputType = wsdlTypeToInterface(
             description[service][port][method].input || {},
             method + 'Input',
             collector,
             opts,
           );
-          if (opts.forceNamespaceOnInputRoot) {
-            inputType = `@XmlNamespace("${opts.forceNamespaceOnInputRoot}", true)` + inputType;
-          }
           output.types[service][port]['I' + method + 'Input'] = inputType;
           output.types[service][port]['I' + method + 'Output'] = wsdlTypeToInterface(
             description[service][port][method].output || {},
@@ -479,7 +476,7 @@ export function mergeTypedWsdl(a: ITypedWsdl, ...bs: ITypedWsdl[]): ITypedWsdl {
 
 export function outputTypedWsdl(
   a: ITypedWsdl,
-  outputConfig: { wsdlImportBasePath: string },
+  outputConfig: { wsdlImportBasePath: string; forceNamespaceOnInputRoot?: string },
 ): Array<{ file: string; data: string[] }> {
   const r: Array<{ file: string; data: string[] }> = [];
 
@@ -537,6 +534,9 @@ export function outputTypedWsdl(
       }
       if (a.types[service] && a.types[service][port]) {
         for (const type of Object.keys(a.types[service][port])) {
+          if (type.endsWith('Input') && outputConfig.forceNamespaceOnInputRoot) {
+            interfaceFile.data.push(`@XmlNamespace("${outputConfig.forceNamespaceOnInputRoot}", true)`);
+          }
           interfaceFile.data.push('export class ' + type + ' extends ArBaseSoapNode ' + a.types[service][port][type]);
         }
       }

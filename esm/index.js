@@ -77,7 +77,7 @@ function mkdirpp(dir, mode) {
 }
 Promise.all(config.files.map(a => wsdl2ts(a, opts)))
     .then(xs => mergeTypedWsdl.apply(undefined, xs))
-    .then(a => outputTypedWsdl(a, { wsdlImportBasePath }))
+    .then(a => outputTypedWsdl(a, { wsdlImportBasePath, forceNamespaceOnInputRoot: opts.forceNamespaceOnInputRoot }))
     .then((xs) => {
     return Promise.all(xs.map(x => {
         // console.log("-- %s --", x.file);

@@ -314,10 +314,7 @@ export function wsdl2ts(wsdlUri, opts) {
                     }
                 }
                 for (const method of Object.keys(description[service][port])) {
-                    let inputType = wsdlTypeToInterface(description[service][port][method].input || {}, method + 'Input', collector, opts);
-                    if (opts.forceNamespaceOnInputRoot) {
-                        inputType = `@XmlNamespace("${opts.forceNamespaceOnInputRoot}", true)` + inputType;
-                    }
+                    const inputType = wsdlTypeToInterface(description[service][port][method].input || {}, method + 'Input', collector, opts);
                     output.types[service][port]['I' + method + 'Input'] = inputType;
                     output.types[service][port]['I' + method + 'Output'] = wsdlTypeToInterface(description[service][port][method].output || {}, method + 'Output', collector, opts);
                     /*
@@ -447,6 +444,9 @@ export function outputTypedWsdl(a, outputConfig) {
             }
             if (a.types[service] && a.types[service][port]) {
                 for (const type of Object.keys(a.types[service][port])) {
+                    if (type.endsWith('Input') && outputConfig.forceNamespaceOnInputRoot) {
+                        interfaceFile.data.push(`@XmlNamespace("${outputConfig.forceNamespaceOnInputRoot}", true)`);
+                    }
                     interfaceFile.data.push('export class ' + type + ' extends ArBaseSoapNode ' + a.types[service][port][type]);
                 }
             }
