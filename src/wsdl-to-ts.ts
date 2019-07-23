@@ -507,8 +507,10 @@ export function outputTypedWsdl(
         // .map(u => (u.endsWith(">") ? u.substring(0, u.length - 1) : u))
         .filter(e => e !== 'string' && e !== 'number' && e !== 'boolean' && !e.includes('"'));
       types.push('ArBaseSoapNode');
-      interfaceFile.data.push(`import { ${types.join(', ')} } from "../../wsdl.types";`);
-      interfaceFile.data.push(`import { XmlNamespace, XmlOrder } from "../../wsdl.decorators";`);
+      interfaceFile.data.push(`import { ${types.join(', ')} } from "common/lib-soapclient/src/lib/wsdl.types";`);
+      interfaceFile.data.push(
+        `import { XmlNamespace, XmlOrder } from "common/lib-soapclient/src/lib/wsdl.decorators";`,
+      );
       interfaceFile.data.push(`import { Type } from "class-transformer";`);
 
       interfaceFile.data.push(
