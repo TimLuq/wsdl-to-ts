@@ -9,6 +9,7 @@ interface ITwoDown<T> {
 }
 export interface IInterfaceOptions {
     quoteProperties?: boolean;
+    forceNamespaceOnInputRoot?: string;
 }
 export interface ITypedWsdl {
     client: soap.Client | null;

@@ -65,7 +65,9 @@ if (args.hasOwnProperty('quote')) {
     opts.quoteProperties = true;
   }
 }
-
+if (args.forceNamespaceOnInputRoot) {
+  opts.forceNamespaceOnInputRoot = args.forceNamespaceOnInputRoot;
+}
 if (args._) {
   config.files.push.apply(config.files, args._);
 }

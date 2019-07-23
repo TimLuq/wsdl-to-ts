@@ -16,6 +16,7 @@ interface IInterfaceObject {
 
 export interface IInterfaceOptions {
   quoteProperties?: boolean;
+  forceNamespaceOnInputRoot?: string;
 }
 
 export interface ITypedWsdl {
@@ -302,6 +303,7 @@ export function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITyp
       endpoint: '',
     };
     const description = client.describe();
+    console.log('DESCRIPTION:', JSON.stringify(description));
 
     const describedServices = (client as any).wsdl.services;
     const describedService = describedServices[Object.keys(describedServices)[0]];
@@ -372,12 +374,16 @@ export function wsdl2ts(wsdlUri: string, opts?: IInterfaceOptions): Promise<ITyp
         }
 
         for (const method of Object.keys(description[service][port])) {
-          output.types[service][port]['I' + method + 'Input'] = wsdlTypeToInterface(
+          let inputType = wsdlTypeToInterface(
             description[service][port][method].input || {},
             method + 'Input',
             collector,
             opts,
           );
+          if (opts.forceNamespaceOnInputRoot) {
+            inputType = `@XmlNamespace("${opts.forceNamespaceOnInputRoot}", true)` + inputType;
+          }
+          output.types[service][port]['I' + method + 'Input'] = inputType;
           output.types[service][port]['I' + method + 'Output'] = wsdlTypeToInterface(
             description[service][port][method].output || {},
             method + 'Output',

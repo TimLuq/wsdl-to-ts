@@ -251,6 +251,7 @@ export function wsdl2ts(wsdlUri, opts) {
             endpoint: '',
         };
         const description = client.describe();
+        console.log('DESCRIPTION:', JSON.stringify(description));
         const describedServices = client.wsdl.services;
         const describedService = describedServices[Object.keys(describedServices)[0]];
         const describecPorts = describedService.ports;
@@ -313,7 +314,11 @@ export function wsdl2ts(wsdlUri, opts) {
                     }
                 }
                 for (const method of Object.keys(description[service][port])) {
-                    output.types[service][port]['I' + method + 'Input'] = wsdlTypeToInterface(description[service][port][method].input || {}, method + 'Input', collector, opts);
+                    let inputType = wsdlTypeToInterface(description[service][port][method].input || {}, method + 'Input', collector, opts);
+                    if (opts.forceNamespaceOnInputRoot) {
+                        inputType = `@XmlNamespace("${opts.forceNamespaceOnInputRoot}", true)` + inputType;
+                    }
+                    output.types[service][port]['I' + method + 'Input'] = inputType;
                     output.types[service][port]['I' + method + 'Output'] = wsdlTypeToInterface(description[service][port][method].output || {}, method + 'Output', collector, opts);
                     /*
                     output.methods[service][port][method] =
