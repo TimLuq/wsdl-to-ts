@@ -9,8 +9,8 @@ import { ArApiLogger } from 'common/nestjs-core/src/services/ar-api-logger';
 
 export class ${body.serviceName} extends BaseSoapService {
 
-private serviceName = "${body.serviceName}";
-private static readonly defaultEndpoint = "${body.defaultEndpoint}";
+public static readonly serviceName = "${body.serviceName}";
+public static readonly defaultEndpoint = "${body.defaultEndpoint}";
 constructor() {
     super();
 }
