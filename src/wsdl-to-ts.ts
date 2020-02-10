@@ -79,7 +79,7 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeColle
                 }
             }
             r[k2] = "/** " + typeFullName + "(" + typeData + ") */ " + typeClass + ";";
-        } else {
+        } else if (obj[k] !== v) {
             const to = wsdlTypeToInterfaceObj(v as IInterfaceObject, typeCollector);
             let tr: { [k: string]: any } | string;
             if (isArray) {
