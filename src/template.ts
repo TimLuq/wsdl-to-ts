@@ -1,10 +1,16 @@
+export const TS_IMPORT_PATHS = {
+  WSDL_CLIENT : '@adamriese/soap-client/lib/wsdl.client',
+  WSDL_DECORATORS : '@adamriese/soap-client/lib/wsdl.decorators',
+  WSDL_TYPES: '@adamriese/soap-client/lib/wsdl.types',
+  CORE: '@adamriese/core',
+};
+
 export default class Templates {
   public static serviceHeaderTemplate(body: any) {
-    return `import { BaseSoapService, IArSoapOptions } from '../../../lib/wsdl.client';
-import { RecursivePartial } from 'common/nestjs-core/src/utils/recursive-partial';
+    return `import { BaseSoapService, IArSoapOptions } from '${TS_IMPORT_PATHS.WSDL_CLIENT}';
 import { IOptions } from 'soap';
 import * as path from 'path';
-import { ArApiLogger } from 'common/nestjs-core/src/services/ar-api-logger';
+import { ArApiLogger, RecursivePartial } from '${TS_IMPORT_PATHS.CORE}';
 
 
 export class ${body.serviceName} extends BaseSoapService {

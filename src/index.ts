@@ -5,7 +5,7 @@ import { rename, writeFile } from 'fs';
 import * as path from 'path';
 import * as minimist from 'minimist';
 import * as mkdirp from 'mkdirp';
-import { IInterfaceOptions, ITypedWsdl, mergeTypedWsdl, outputTypedWsdl, wsdl2ts } from './wsdl-to-ts';
+import { IInterfaceOptions, mergeTypedWsdl, outputTypedWsdl, wsdl2ts } from './wsdl-to-ts';
 
 interface IConfigObject {
   outdir: string;
