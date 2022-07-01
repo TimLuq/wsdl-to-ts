@@ -61,7 +61,7 @@ function wsdlTypeToInterfaceObj(obj: IInterfaceObject, typeCollector?: TypeColle
             const [typeName, superTypeClass, typeData] =
                 vstr.indexOf("|") === -1 ? [vstr, vstr, undefined] : vstr.split("|");
             const typeFullName = obj.targetNamespace ? obj.targetNamespace + "#" + typeName : typeName;
-            let typeClass = new RegExp(/\:(integer|int|long|double)$/g).test(superTypeClass) ? "number" : superTypeClass;
+            let typeClass = new RegExp(/\:(integer|int|long|double|decimal)$/g).test(superTypeClass) ? "number" : superTypeClass;
             if (nsEnums[typeFullName] || typeData) {
                 const filter = nsEnums[typeFullName] ?
                     () => true :
